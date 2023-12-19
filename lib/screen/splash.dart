@@ -58,7 +58,7 @@ class _SplaceState extends State<Splace> {
               child: Container(
                 height: 52,
                 decoration: const BoxDecoration(
-                    color: Color(0xff014e78),
+                    color: Color(0xff03467d),
                     borderRadius: BorderRadius.all(Radius.circular(30))),
                 child: const Center(
                   child: Text(

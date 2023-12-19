@@ -9,23 +9,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 
-Future<void> backgroundHandler(RemoteMessage message) async {
-  print(message.data.toString());
-  print(message.notification!.title);
-}
+Future<void> backgroundHandler(RemoteMessage message) async {}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
-
   FirebaseMessaging.onBackgroundMessage(backgroundHandler);
   LocalNotificationService.initialize();
   await Hive.initFlutter();
   await FlutterDownloader.initialize(
     debug: true,
   );
-
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((value) => runApp(MyApp()));
 }
@@ -39,7 +33,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var login;
-
+var login1;
   @override
   void initState() {
     super.initState();
@@ -49,20 +43,25 @@ class _MyAppState extends State<MyApp> {
   checkLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString("isToken");
+   var verify = prefs.getString("verification");
     setState(() {
       login = token;
+      login1 = verify;
     });
   }
 
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'GKSM',
         theme: ThemeData(
           appBarTheme: const AppBarTheme(
             systemOverlayStyle: SystemUiOverlayStyle.light,
           ),
         ),
-        home: login != null ? HomeScreen() : const Splace());
+        home: login!=null&&login1.toString()=="null" ?
+         HomeScreen() 
+  
+         : const Splace());
   }
 }

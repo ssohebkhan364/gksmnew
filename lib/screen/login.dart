@@ -1,18 +1,19 @@
-
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gkms/api/api.dart';
+import 'package:gkms/otp.dart';
 import 'package:gkms/screen/dashboard.dart';
 import 'package:gkms/screen/forgot.dart';
 import 'package:gkms/screen/signup.dart';
+import 'package:gkms/screen/verification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override
@@ -24,110 +25,96 @@ TextEditingController emailController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 
 class _LoginScreenState extends State<LoginScreen> {
-FocusNode _focusNode = FocusNode();
+  FocusNode _focusNode = FocusNode();
   bool passwordVisible = false;
   late Box box1;
-   bool isChecked = false;
-   late ConnectivityResult result;
-late StreamSubscription subscription;
-var isConnected=false;
-var token1;
+  bool isChecked = false;
+  late ConnectivityResult result;
+  late StreamSubscription subscription;
+  var isConnected = false;
+  var token1;
 
   @override
   void initState() {
     super.initState();
     createOpenBox();
     passwordVisible = true;
-      FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance; 
-    _firebaseMessaging.getToken().then((token){
-      token1= '$token';
-      print("token is $token");
-         print("mmmm");
+    FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+    _firebaseMessaging.getToken().then((token) {
+      token1 = '$token';
       print(token1);
       _focusNode.addListener(() {
-  if (_focusNode.hasFocus) {
-  
-  } else {
-  
-  }
-});
-      
+        if (_focusNode.hasFocus) {
+        } else {}
       });
-   
+    });
   }
-@override
-void dispose() {
-  _focusNode.dispose();
-  super.dispose();
-}
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   checkInternet() async {
     result = await Connectivity().checkConnectivity();
-    print("jjjjj");
-    print(result);
- 
-       
+
     if (result != ConnectivityResult.none) {
       isConnected = true;
     } else {
-      isLoading=false;
+      isLoading = false;
       isConnected = false;
-        showDialogBox();
-      
-
+      showDialogBox();
     }
-       setState(() {    ;});
- 
+    setState(() {
+      ;
+    });
   }
 
-  showDialogBox()async {
-   await Future.delayed(Duration(milliseconds: 50));
-         showDialog(
-          barrierDismissible: false,
+  showDialogBox() async {
+    await Future.delayed(Duration(milliseconds: 50));
+    showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) => CupertinoAlertDialog(
               actions: [
-                CupertinoButton(child: Text("Retry"), onPressed: () {
-      
-                  Navigator.pop(context);
-                  checkInternet();
-                  setState(() {
-                    
-                  });
-                })
+                CupertinoButton(
+                    child: Text("Retry"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      checkInternet();
+                      setState(() {});
+                    })
               ],
               title: Text("No internet"),
               content: Text("Please check your internet connection"),
             ));
   }
 
-  startStriming()async {
-
-    subscription = Connectivity().onConnectivityChanged.listen((event) async{
+  startStriming() async {
+    subscription = Connectivity().onConnectivityChanged.listen((event) async {
       checkInternet();
-   
-     
     });
   }
 
-  void createOpenBox()async{
+  void createOpenBox() async {
     box1 = await Hive.openBox('logindata');
     getdata();
-   
   }
-   void getdata()async{
-    if(box1.get('email')!=null){
+
+  void getdata() async {
+    if (box1.get('email') != null) {
       emailController.text = box1.get('email');
       isChecked = true;
-      setState(() {
-      });
+      setState(() {});
     }
-    if(box1.get('pass')!=null){
+    if (box1.get('pass') != null) {
       passwordController.text = box1.get('pass');
       isChecked = true;
-      setState(() {
-      });
+      setState(() {});
     }
   }
+
   void clearText() {
     emailController.clear();
     passwordController.clear();
@@ -146,11 +133,13 @@ void dispose() {
         body: Form(
           key: _formKey,
           child: Stack(children: [
-            Center(child: isLoading ?SpinKitCircle(
-                color: Color(
-                                                  0xff014E78),
-              size: 50,
-              ) : null),
+            Center(
+                child: isLoading
+                    ? SpinKitCircle(
+                        color: Color(0xff03467d),
+                        size: 50,
+                      )
+                    : null),
             Column(
               children: [
                 SizedBox(
@@ -211,9 +200,8 @@ void dispose() {
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: TextFormField(
-                     focusNode: _focusNode,
+                      focusNode: _focusNode,
                       keyboardType: TextInputType.emailAddress,
-          
                       controller: emailController,
                       decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
@@ -328,28 +316,27 @@ void dispose() {
                     },
                   ),
                 ),
-
-                 Padding(
-                   padding:  EdgeInsets.only(left: 10),
-                   child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                         
-                          Checkbox(
-                          
-                            value: isChecked,
-                            onChanged: (value){
-                              isChecked = !isChecked;
-                              setState(() {
-                                print("hhhhhh"'$isChecked');
-                              });
-                            },
-                             activeColor: Color(0xff03467d)
-                          ),
-                           Text("Remember Me",style: TextStyle(color: Color(0xff03467d),),),
-                        ],
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                          value: isChecked,
+                          onChanged: (value) {
+                            isChecked = !isChecked;
+                            setState(() {});
+                          },
+                          activeColor: Color(0xff03467d)),
+                      Text(
+                        "Remember Me",
+                        style: TextStyle(
+                          color: Color(0xff03467d),
+                        ),
                       ),
-                 ),
+                    ],
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.all(14.0),
                   child: Row(
@@ -390,34 +377,53 @@ void dispose() {
                         Map<String, dynamic> map = {
                           'email': emailController.text,
                           'password': passwordController.text,
-                          'token':token1.toString(),
+                          'token': token1.toString(),
                           'user_type': "4"
-                          
                         };
 
                         if (_formKey.currentState!.validate()) {
-                           
                           setState(() {
                             isLoading = true;
                           });
                           ApiServices.login(map).then((value) async {
-                            
+                          
                             if (value.status == true) {
-                                 login();
-                                 logout();
+                              login();
+                              logout();
                               SharedPreferences prefs =
                                   await SharedPreferences.getInstance();
-                                   
+
                               await ApiServices.profileGet().then((value) {
-                                prefs.setString(
+                                 prefs.setString(
+                                  "verification", value.message.toString());
+                                      var verify = prefs.getString("verification");
+                                      print("zczc");
+                                      print(verify.toString());
+                                if (value.message.toString() ==
+                                    "notemailverfied") {
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: ((context) =>
+                                              Verification())));
+                                }
+
+                                if (value.message.toString() ==
+                                    "notmobileverfied") {
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: ((context) => otpScreen())));
+                                }
+                                  prefs.setString(
                                     "user_name", value.result!.name as String);
+                              
                               });
-                         
 
                               ScaffoldMessenger.of(context)
-                                  .showSnackBar( SnackBar(
+                                  .showSnackBar(SnackBar(
                                 content: Text(value.message.toString()),
-                                backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+                                backgroundColor: Color(0xff03467d),
                               ));
                               Navigator.pushAndRemoveUntil(
                                   context,
@@ -425,38 +431,30 @@ void dispose() {
                                       builder: (BuildContext context) =>
                                           HomeScreen()),
                                   (Route<dynamic> route) => false);
-                                      clearText();
-                                   
-                          
-                           
+                              clearText();
                             } else {
                               setState(() {
                                 isLoading = false;
                               });
 
-value.message=="Validation not Completed yet."?
-  ScaffoldMessenger.of(context)
-                                  .showSnackBar( SnackBar(
-                                content: Text("Your account is not approved yet."),
-                              
-                                backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-                              )):
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar( SnackBar(
-                                content: Text(value.message.toString()),
-                              
-                                backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-                              ));
+                              value.message == "Validation not Completed yet."
+                                  ? ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                      content: Text(
+                                          "Your account is not approved yet."),
+                                      backgroundColor: Color(0xff03467d),
+                                    ))
+                                  : ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                      content: Text(value.message.toString()),
+                                      backgroundColor: Color(0xff03467d),
+                                    ));
                             }
                           });
-                                    checkInternet();
-     startStriming();
-     setState(() {
-       
-     });
+                          checkInternet();
+                          startStriming();
+                          setState(() {});
                         }
-
-                       
                       },
                       child: Container(
                         height: 52,
@@ -469,7 +467,7 @@ value.message=="Validation not Completed yet."?
                             "Login ",
                             style: TextStyle(
                                 color: Colors.white,
-                           fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.bold,
                                 fontSize: 20),
                           ),
                         ),
@@ -523,25 +521,17 @@ value.message=="Validation not Completed yet."?
       ),
     );
   }
-void login(){
-    
 
-    if(isChecked==true){
+  void login() {
+    if (isChecked == true) {
       box1.put('email', emailController.text);
       box1.put('pass', passwordController.text);
     }
-  
- }
- void logout(){
-    
+  }
 
-    if(isChecked==false){
-   box1.clear();
-    
+  void logout() {
+    if (isChecked == false) {
+      box1.clear();
     }
-  
- }
+  }
 }
-
-
-

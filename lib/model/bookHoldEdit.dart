@@ -54,6 +54,7 @@ class MultiCustomer {
   String? plotPublicId;
   String? paymentMode;
   String? adharCard;
+  String? adhar_card_number;
   String? chequePhoto;
   dynamic panCard;
   String? panCardImage;
@@ -72,6 +73,7 @@ class MultiCustomer {
     this.plotPublicId,
     this.paymentMode,
     this.adharCard,
+    this.adhar_card_number,
     this.chequePhoto,
     this.panCard,
     this.panCardImage,
@@ -91,6 +93,7 @@ class MultiCustomer {
         plotPublicId: json["plot_public_id"],
         paymentMode: json["payment_mode"],
         adharCard: json["adhar_card"],
+        adhar_card_number: json["adhar_card_number"],
         chequePhoto: json["cheque_photo"],
         panCard: json["pan_card"],
         panCardImage: json["pan_card_image"],
@@ -114,6 +117,7 @@ class MultiCustomer {
         "plot_public_id": plotPublicId,
         "payment_mode": paymentMode,
         "adhar_card": adharCard,
+        "adhar_card_number": adhar_card_number,
         "cheque_photo": chequePhoto,
         "pan_card": panCard,
         "pan_card_image": panCardImage,
@@ -145,6 +149,7 @@ class ProptyDetail {
   String? associateReraNumber;
   String? paymentMode;
   String? adharCard;
+  String? adhar_card_number;
   dynamic panCard;
   String? panCardImage;
   String? chequePhoto;
@@ -186,6 +191,7 @@ class ProptyDetail {
     this.associateReraNumber,
     this.paymentMode,
     this.adharCard,
+    this.adhar_card_number,
     this.panCard,
     this.panCardImage,
     this.chequePhoto,
@@ -227,6 +233,7 @@ class ProptyDetail {
         associateNumber: json["associate_number"],
         associateReraNumber: json["associate_rera_number"],
         paymentMode: json["payment_mode"],
+        adhar_card_number: json["adhar_card_number"],
         adharCard: json["adhar_card"],
         panCard: json["pan_card"],
         panCardImage: json["pan_card_image"],
@@ -275,6 +282,7 @@ class ProptyDetail {
         "associate_number": associateNumber,
         "associate_rera_number": associateReraNumber,
         "payment_mode": paymentMode,
+        "adhar_card_number": adhar_card_number,
         "adhar_card": adharCard,
         "pan_card": panCard,
         "pan_card_image": panCardImage,

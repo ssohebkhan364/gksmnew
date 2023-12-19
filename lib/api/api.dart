@@ -3,17 +3,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gkms/api/url_helper.dart';
 import 'package:gkms/model/Log_out.dart';
-import 'package:gkms/model/SchemsForm.dart';
+import 'package:gkms/model/Multiple_ploat.dart';
 import 'package:gkms/model/bookHoldEdit.dart';
 import 'package:gkms/model/login.dart';
+import 'package:gkms/model/otpVerify.dart';
+import 'package:gkms/model/otpreverify.dart';
+import 'package:gkms/model/payment_model.dart';
+import 'package:gkms/model/payment_post.dart';
 import 'package:gkms/model/report_details.dart';
 import 'package:gkms/model/schems_details.dart';
+import 'package:gkms/model/verify.dart';
+import 'package:gkms/model/waiting_list.dart';
+import 'package:gkms/screen/login.dart';
 import 'package:gkms/screen/schems.dart';
 import 'package:path/path.dart';
 import 'package:gkms/model/changePassword.dart';
 import 'package:gkms/model/dhashboard.dart';
 import 'package:gkms/model/forgot.dart';
-
 import 'package:gkms/model/profile.dart';
 import 'package:gkms/model/signUp.dart';
 import 'package:http/http.dart' as http;
@@ -28,18 +34,29 @@ class ApiServices {
       Uri.parse(UrlHelper.SignupUrl),
       body: map,
     );
-
+print("jjjjjj");
+print(response.statusCode);
     if (response.statusCode == 200) {
       return SignUpModel.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 500) {
-      return signUpModel;
+    }
+    
+     else if (response.statusCode == 500) {
+       signUpModel.message = jsonDecode(response.body)["message"];
+        //  signUpModel.errors = jsonDecode(response.body)["errors"];
+        return signUpModel;
     } else {
-      return signUpModel;
+              
+    //  signUpModel.message = jsonDecode(response.body)["message"];
+    //   //  return SignUpModel.fromJson(jsonDecode(response.body));
+    //      signUpModel.errors = jsonDecode(response.body)["Errors"];
+    //      print("jhhjhj");
+       print("hjhjh");
+       print(response.body);
+     return SignUpModel.fromJson(jsonDecode(response.body));
     }
   }
 
   static Future<LoginModel> login(Map<String, dynamic> map) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     LoginModel loginModel = LoginModel();
     List<LoginModel> loginMode;
     var response = await http.post(
@@ -61,7 +78,6 @@ class ApiServices {
       loginModel.message = 'Server error';
       return loginModel;
     } else {
-      
       loginModel.message = jsonDecode(response.body)["message"];
       return loginModel;
     }
@@ -114,18 +130,23 @@ class ApiServices {
   }
 
   static Future<LogOut> getLogOut(context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+   
+   SharedPreferences prefs = await SharedPreferences.getInstance();
     var isToken = prefs.getString('isToken');
+
 
     LogOut log = LogOut();
     var response = await http.get(
       Uri.parse(UrlHelper.logOut),
       headers: {
-        'Authorization': "Bearer $isToken",
+          'Authorization': "Bearer $isToken",
       },
     );
 
     if (response.statusCode == 200) {
+
+  
+   
       return LogOut.fromJson(jsonDecode(response.body));
     } else {
       log.message = jsonDecode(response.body)["message"];
@@ -145,9 +166,8 @@ class ApiServices {
       },
     );
 
+ 
     if (response.statusCode == 200) {
-      print("hghgjghgh");
-      print(response.body);
       return DashboardModel.fromJson(jsonDecode(response.body.toString()));
     } else {
       dashboardModel.message = jsonDecode(response.body)["message"];
@@ -157,10 +177,11 @@ class ApiServices {
 
   static Future<ProfileModel> profileGet() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    ProfileModel loginModel = ProfileModel();
+
     List<ProfileModel> loginMode;
 
     var isToken = prefs.getString('isToken');
+
 
     ProfileModel profileModel = ProfileModel();
     var response = await http.get(
@@ -169,6 +190,7 @@ class ApiServices {
         'Authorization': "Bearer $isToken",
       },
     );
+
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       loginMode = <ProfileModel>[];
@@ -183,9 +205,6 @@ class ApiServices {
       prefs.setString(
           "is reranumber", user.result!.associateReraNumber as String);
       prefs.setString("is userid", user.result!.publicId as String);
-      var isname = prefs.getString('isname');
-      var number = prefs.getString('is number');
-      var reranumber = prefs.getString('is reranumber');
 
       return ProfileModel.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 500) {
@@ -198,122 +217,6 @@ class ApiServices {
     }
   }
 
-  static Future<SchemsForm> SchemForm(Map<String, dynamic> map) async {
-    SchemsForm schemsForm = SchemsForm();
-
-    var response = await http.post(
-      Uri.parse("https://dmlux.in/project/public/api/property/booking"),
-      body: map,
-    );
-
-    if (response.statusCode == 200) {
-      return SchemsForm.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 500) {
-      return schemsForm;
-    } else {
-      return schemsForm;
-    }
-  }
-
-  static Future<SchemsForm> upload(
-      BuildContext context,
-      image,
-      image1,
-      image2,
-      image3,
-      id,
-      value,
-      dropdownValue1,
-      customer_name,
-      contact_number,
-      address,
-      pan_number,
-      description) async {
-    SchemsForm schemsForm = SchemsForm();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var isname = prefs.getString('isname');
-    var number = prefs.getString('is number');
-    var reranumber = prefs.getString('is reranumber');
-
-    var isToken = prefs.getString('isToken');
-    Map<String, String> headers = {
-      HttpHeaders.authorizationHeader: 'Bearer $isToken',
-    };
-    var stream = http.ByteStream(image!.openRead());
-    stream.cast();
-    var length = await image!.length();
-    String filename = basename(image!.path);
-    var uri = Uri.parse('https://dmlux.in/project/public/api/property/booking');
-    var request = http.MultipartRequest('POST', uri);
-    var multipartFile = http.MultipartFile(
-      'adhar_card',
-      stream,
-      length,
-      filename: filename,
-    );
-    request.files.add(multipartFile);
-
-    String fileName2 = basename(image1!.path);
-    var stream2 = http.ByteStream(image1!.openRead());
-    var lengthOfFile2 = await image1!.length();
-    var multipartFile2 = http.MultipartFile(
-        'cheque_photo', stream2, lengthOfFile2,
-        filename: fileName2);
-    request.files.add(multipartFile2);
-    String fileName3 = basename(image2!.path);
-    var stream3 = http.ByteStream(image2!.openRead());
-    var lengthOfFile3 = await image2!.length();
-    var multipartFile3 = http.MultipartFile(
-        'attachement', stream3, lengthOfFile3,
-        filename: fileName3);
-    request.files.add(multipartFile3);
-    String fileName4 = basename(image3!.path);
-    var stream4 = http.ByteStream(image3!.openRead());
-    var lengthOfFile4 = await image3!.length();
-    var multipartFile4 = http.MultipartFile(
-        'pan_card_image', stream4, lengthOfFile4,
-        filename: fileName4);
-    request.files.add(multipartFile4);
-    request.fields['property_id'] = id;
-    request.fields['associate_name'] = isname.toString();
-    request.fields['associate_number'] = number.toString();
-    request.fields['associate_rera_number'] = reranumber.toString();
-    request.fields['owner_name'] = customer_name.text;
-    request.fields['ploat_status'] = value == "Hold"
-        ? '3'
-        : value == "Book"
-            ? '2'
-            : '0';
-    request.fields['contact_no'] = contact_number.text;
-    request.fields['address'] = address.text;
-    request.fields['payment_mode'] = dropdownValue1 == "RTGS/IMPS"
-        ? '1'
-        : dropdownValue1 == "Bank Transfer"
-            ? '2'
-            : dropdownValue1 == "Cheque"
-                ? '3'
-                : '0';
-    request.fields['pan_card_no'] = pan_number.text;
-    request.fields['description'] = description.text;
-    request.headers.addAll(headers);
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      response.stream.transform(utf8.decoder).listen((value) {
-        SchemsForm.fromJson(jsonDecode(value));
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("successfully"),
-          backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-        ));
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => SchemesSchreem()));
-      });
-
-      return SchemsForm.fromJson(jsonDecode(value));
-    } else {
-      return schemsForm;
-    }
-  }
 
   static Future<BookHold> bookHoldEdit(
     context,
@@ -326,7 +229,9 @@ class ApiServices {
     var isschemid = prefs.getString('schemeid');
     var response = await http.get(
       Uri.parse(
-          "https://dmlux.in/project/public/api/property/book-hold?scheme_id=$isschemid&property_id=$id"),
+          // "https://dmlux.in/project/public/api/property/book-hold?scheme_id=$isschemid&property_id=$id"),
+    
+    UrlHelper.property_book_hold +'?scheme_id=$isschemid&property_id=$id'),
       headers: {
         'Authorization': "Bearer $isToken",
         "Content-Type": "application/json",
@@ -370,14 +275,14 @@ class ApiServices {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var isToken = prefs.getString('isToken');
     var response = await http.get(
-      Uri.parse(
-          UrlHelper.book_details_url+'$scheme'),
+      Uri.parse(UrlHelper.book_details_url + '$scheme'),
       headers: {
         'Authorization': "Bearer $isToken",
       },
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+ 
       return BookHoldDetails.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 500) {
       schemsDetailsModel.result;
@@ -388,9 +293,220 @@ class ApiServices {
     }
   }
 
+  static Future<MultiplePloat> multiple_ploat(context, scheme) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
 
-
-
-
+    MultiplePloat multiplePloat = MultiplePloat();
+    var response = await http.get(
+      Uri.parse(
+          UrlHelper.multiple_booking + '$scheme'),
   
+         
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return MultiplePloat.fromJson(jsonDecode(response.body.toString()));
+    } else {
+      multiplePloat.status = jsonDecode(response.body)["status"];
+        multiplePloat.message = jsonDecode(response.body)["message"];
+      return multiplePloat;
+    }
+  }
+
+  static Future<WaitingList> waiting(context, id, num) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+
+    WaitingList waitingList1 = WaitingList();
+    var response = await http.get(
+      Uri.parse(UrlHelper.waitin_list+'$id/$num'),
+ 
+
+     
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return WaitingList.fromJson(jsonDecode(response.body.toString()));
+    } else {
+      // waitingList1.status = jsonDecode(response.body)["status"];
+        waitingList1.message = jsonDecode(response.body)["message"];
+        print("uuuu");
+        print( waitingList1.message);
+      return waitingList1;
+    }
+  }
+
+  static Future<PaymentModel> payment(
+    context,
+    id,
+  ) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+
+    PaymentModel paymentModel = PaymentModel();
+    var response = await http.get(
+      Uri.parse( UrlHelper.payment_prrof+'$id'),
+      
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return PaymentModel.fromJson(jsonDecode(response.body.toString()));
+    } else {
+      paymentModel.status = jsonDecode(response.body)["status"];
+        paymentModel.message = jsonDecode(response.body)["message"];
+      return paymentModel;
+    }
+  }
+
+  static Future<PaymentPost> paymentPost(
+      context, add_image3, id, payment_details) async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+
+    PaymentPost paymentPost = PaymentPost();
+    Map<String, String> headers = {
+      HttpHeaders.authorizationHeader: 'Bearer $isToken',
+    };
+
+    var stream = http.ByteStream(add_image3!.openRead());
+    stream.cast();
+    var length = await add_image3!.length();
+    String filename = basename(add_image3!.path);
+ var uri = Uri.parse(UrlHelper.payment_prrof_post);
+   
+    var request = http.MultipartRequest('POST', uri);
+
+    var multipartFile = http.MultipartFile(
+      'payment_proof',
+      stream,
+      length,
+      filename: filename,
+    );
+    request.files.add(multipartFile);
+    request.fields['payment_detail'] = payment_details;
+    request.fields['id'] = id.toString();
+    request.headers.addAll(headers);
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      var responseString = await response.stream.bytesToString();
+      final decodedMap = json.decode(responseString);
+
+     
+      
+      if(decodedMap['message'].toString() == "Payment details update successfully"){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(decodedMap['message'].toString()),
+        backgroundColor: Color(0xff03467d)
+      ));
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => SchemesSchreem()),
+          (Route<dynamic> route) => route.isFirst);
+
+      }
+      return paymentPost;
+    } else {
+       var responseString = await response.stream.bytesToString();
+      final decodedMap = json.decode(responseString);
+
+        paymentPost.message =decodedMap['message'].toString();
+             if (decodedMap['message'].toString() == "Unauthenticated.") {
+        ApiServices.getLogOut(context).then((value) {
+          if(value.status==true){
+             prefs.clear();
+          }
+        });
+   
+        Navigator.push(
+            context, MaterialPageRoute(builder: ((context) => LoginScreen())));
+      }
+      return paymentPost;
+    }
+  }
+
+  static Future<VerifyModel> verify() async {
+    VerifyModel verifyModel = VerifyModel();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+    var response = await http.get(
+      Uri.parse(UrlHelper.verify),
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+
+      return VerifyModel.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 500) {
+      verifyModel;
+      return verifyModel;
+    } else {
+      verifyModel.message = jsonDecode(response.body)["message"];
+      return verifyModel;
+    }
+  }
+
+  static Future<OtpVerify> otpVerify(String otp) async {
+
+
+    OtpVerify otpVerify = OtpVerify();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+    var response = await http.get(
+      Uri.parse(UrlHelper.vrifyotp+"?token=$otp"),
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+
+      return OtpVerify.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 500) {
+      otpVerify;
+      return otpVerify;
+    } else {
+      otpVerify.message = jsonDecode(response.body)["message"];
+      return otpVerify;
+    }
+  }
+
+  static Future<OtpReVerify> otpReVerify() async {
+  
+    OtpReVerify otpReVerify = OtpReVerify();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var isToken = prefs.getString('isToken');
+    var response = await http.get(
+      Uri.parse(UrlHelper.revrifyrotp),
+      headers: {
+        'Authorization': "Bearer $isToken",
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+
+      return OtpReVerify.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 500) {
+      otpReVerify;
+      return otpReVerify;
+    } else {
+      otpReVerify.message = jsonDecode(response.body)["message"];
+      return otpReVerify;
+    }
+  }
 }
+

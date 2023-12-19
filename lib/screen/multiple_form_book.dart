@@ -15,26 +15,28 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 
-class SchemeForm extends StatefulWidget {
+class MultipleForm extends StatefulWidget {
   final isname;
   final number;
   final reranumber;
   final id;
-  final details;
+  final detail;
+  List select;
 
-  SchemeForm(
+  MultipleForm(
     this.isname,
     this.number,
     this.reranumber,
     this.id,
-    this.details,
+    this.select,
+    this.detail,
   );
 
   @override
-  State<SchemeForm> createState() => _SchemeFormState();
+  State<MultipleForm> createState() => _MultipleFormState();
 }
 
-class _SchemeFormState extends State<SchemeForm> {
+class _MultipleFormState extends State<MultipleForm> {
   late ConnectivityResult result1;
   late StreamSubscription subscription;
   var isConnected = false;
@@ -42,7 +44,7 @@ class _SchemeFormState extends State<SchemeForm> {
   var isname;
   var number;
   var reranumber;
-var details;
+  var detail;
   int index = 0;
   int int_index = 0;
   int val = 0;
@@ -84,7 +86,6 @@ var details;
   TextEditingController add_address = TextEditingController();
   TextEditingController add_pannumber = TextEditingController();
   TextEditingController add_Adar = TextEditingController();
-
   String? filename;
   PlatformFile? pickedFile;
   File? document;
@@ -556,11 +557,9 @@ var details;
     }
   }
 
-
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-   
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xff03467d),
@@ -725,7 +724,11 @@ var details;
                                 child: Row(
                                   children: [
                                     Text("Customer Name"),
-                                  Icon(Icons.star,color: Colors.red,size: 10,)
+                                    Icon(
+                                      Icons.star,
+                                      color: Colors.red,
+                                      size: 10,
+                                    )
                                   ],
                                 ),
                               ),
@@ -786,172 +789,174 @@ var details;
                                 child: Row(
                                   children: [
                                     Text("Status"),
-                                        Icon(Icons.star,color: Colors.red,size: 10,)
+                                    Icon(
+                                      Icons.star,
+                                      color: Colors.red,
+                                      size: 10,
+                                    )
                                   ],
                                 ),
                               ),
-                          widget.details=='1'? Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: DropdownButtonFormField(
-                                    elevation: 1,
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      color: Color(0xff03467d),
-                                    ),
-                                    decoration: InputDecoration(
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 10.0),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          borderSide: const BorderSide(
-                                            color: Color(0xff03467d),
-                                          ),
+                              widget.detail == "1"
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: DropdownButtonFormField(
+                                        elevation: 1,
+                                        icon: const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Color(0xff03467d),
                                         ),
-                                        disabledBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          borderSide: const BorderSide(
-                                            color: Color(0xff03467d),
-                                          ),
+                                        decoration: InputDecoration(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 10.0,
+                                                    horizontal: 10.0),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xff03467d),
+                                              ),
+                                            ),
+                                            disabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                                borderSide: BorderSide(
+                                                    color: Color(0xff03467d))),
+                                            focusedErrorBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                                borderSide: BorderSide(
+                                                    color: Color(0xff03467d))),
+                                            errorBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xff03467d),
+                                              ),
+                                            ),
+                                            enabledBorder:
+                                                const OutlineInputBorder(
+                                                    borderRadius: BorderRadius.all(
+                                                        Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                            focusedBorder:
+                                                const OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                      color: Color(0xff03467d),
+                                                    ))),
+                                        value: dropdownValue,
+                                        onChanged: (String? newValue) {
+                                          setState(() {
+                                            dropdownValue = newValue!;
+                                          });
+                                        },
+                                        validator: (dropdownValue) {
+                                          if (dropdownValue ==
+                                              'Select Property Status') {
+                                            return "The Select Property Status field is required.";
+                                          }
+                                          return null;
+                                        },
+                                        items: <String>[
+                                          'Select Property Status',
+                                          'Book',
+                                        ].map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ))
+                                  : Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: DropdownButtonFormField(
+                                        elevation: 1,
+                                        icon: const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Color(0xff03467d),
                                         ),
-                                        enabledBorder: const OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(25)),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        focusedBorder: const OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(25)),
-                                            borderSide: BorderSide(
-                                              color: Color(0xff03467d),
-                                            ))),
-                                    value: dropdownValue,
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        dropdownValue = newValue!;
-                                      });
-                                    },
-                                    validator: (dropdownValue) {
-                                      if (dropdownValue ==
-                                          'Select Property Status') {
-                                        return "The Select Property Status field is required.";
-                                      }
-                                      return null;
-                                    },
-                                    
-                                    items: <String>[
-                                      'Select Property Status',
-                                      'Book',
-                                      
-                                
-                                    ]
-                                    
-                                    
-                                    .map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  )):
-                              Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: DropdownButtonFormField(
-                                    elevation: 1,
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      color: Color(0xff03467d),
-                                    ),
-                                    decoration: InputDecoration(
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                vertical: 10.0,
-                                                horizontal: 10.0),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          borderSide: const BorderSide(
-                                            color: Color(0xff03467d),
-                                          ),
-                                        ),
-                                        disabledBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        focusedErrorBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          borderSide: const BorderSide(
-                                            color: Color(0xff03467d),
-                                          ),
-                                        ),
-                                        enabledBorder: const OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(25)),
-                                            borderSide: BorderSide(
-                                                color: Color(0xff03467d))),
-                                        focusedBorder: const OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(25)),
-                                            borderSide: BorderSide(
-                                              color: Color(0xff03467d),
-                                            ))),
-                                    value: dropdownValue,
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        dropdownValue = newValue!;
-                                      });
-                                    },
-                                    validator: (dropdownValue) {
-                                      if (dropdownValue ==
-                                          'Select Property Status') {
-                                        return "The Select Property Status field is required.";
-                                      }
-                                      return null;
-                                    },
-                                    
-                                    items: <String>[
-                                      'Select Property Status',
-                                      'Book',
-                                      'Hold',
-                                
-                                    ]
-                                    
-                                    
-                                    .map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  )),
+                                        decoration: InputDecoration(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 10.0,
+                                                    horizontal: 10.0),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xff03467d),
+                                              ),
+                                            ),
+                                            disabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                                borderSide: BorderSide(
+                                                    color: Color(0xff03467d))),
+                                            focusedErrorBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
+                                                borderSide: BorderSide(
+                                                    color: Color(0xff03467d))),
+                                            errorBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                              borderSide: const BorderSide(
+                                                color: Color(0xff03467d),
+                                              ),
+                                            ),
+                                            enabledBorder:
+                                                const OutlineInputBorder(
+                                                    borderRadius: BorderRadius.all(
+                                                        Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                            focusedBorder:
+                                                const OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                      color: Color(0xff03467d),
+                                                    ))),
+                                        value: dropdownValue,
+                                        onChanged: (String? newValue) {
+                                          setState(() {
+                                            dropdownValue = newValue!;
+                                          });
+                                        },
+                                        validator: (dropdownValue) {
+                                          if (dropdownValue ==
+                                              'Select Property Status') {
+                                            return "The Select Property Status field is required.";
+                                          }
+                                          return null;
+                                        },
+                                        items: <String>[
+                                          'Select Property Status',
+                                          'Book',
+                                          'Hold',
+                                        ].map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      )),
                               const Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Row(
@@ -1143,7 +1148,11 @@ var details;
                                 child: Row(
                                   children: [
                                     Text("Customer Aadhaar Card Number"),
-                                      Icon(Icons.star,color: Colors.red,size: 10,)
+                                    Icon(
+                                      Icons.star,
+                                      color: Colors.red,
+                                      size: 10,
+                                    )
                                   ],
                                 ),
                               ),
@@ -1154,7 +1163,7 @@ var details;
                                   keyboardType: TextInputType.number,
                                   controller: Adar,
                                   decoration: InputDecoration(
-                                    counterText: "",
+                                      counterText: "",
                                       prefixIconColor: Color(0xff03467d),
                                       prefixIcon: Icon(Icons.numbers),
                                       hintText: "Enter Aadhaar Card Number...",
@@ -1520,7 +1529,11 @@ var details;
                                           child: Row(
                                             children: [
                                               Text("Customer Name"),
-                                              Icon(Icons.star,color:Colors.red,size: 10,)
+                                              Icon(
+                                                Icons.star,
+                                                color: Colors.red,
+                                                size: 10,
+                                              )
                                             ],
                                           ),
                                         ),
@@ -1598,7 +1611,8 @@ var details;
                                             decoration: InputDecoration(
                                                 prefixIconColor:
                                                     Color(0xff03467d),
-                                                hintText: "Enter Contact Number...",
+                                                hintText:
+                                                    "Enter Contact Number...",
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         vertical: 10.0,
@@ -1705,13 +1719,14 @@ var details;
                                                     ))),
                                           ),
                                         ),
-
-                                           const Padding(
+                                        const Padding(
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Customer Aadhaar Card Number"),
-                                              Icon(Icons.star,color:Colors.red,size: 10)
+                                              Text(
+                                                  "Customer Aadhaar Card Number"),
+                                              Icon(Icons.star,
+                                                  color: Colors.red, size: 10)
                                             ],
                                           ),
                                         ),
@@ -1722,7 +1737,7 @@ var details;
                                             keyboardType: TextInputType.number,
                                             controller: co_Adar,
                                             decoration: InputDecoration(
-                                                   counterText: "",
+                                                counterText: "",
                                                 prefixIconColor:
                                                     Color(0xff03467d),
                                                 prefixIcon: Icon(Icons.numbers),
@@ -1785,7 +1800,8 @@ var details;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Customer Aadhaar Card Photo"),
+                                              Text(
+                                                  "Customer Aadhaar Card Photo"),
                                             ],
                                           ),
                                         ),
@@ -1846,6 +1862,7 @@ var details;
                                                     borderSide: BorderSide(
                                                       color: Color(0xff03467d),
                                                     ))),
+                                                    
                                           ),
                                         ),
                                         const Padding(
@@ -1998,7 +2015,8 @@ var details;
                                                 prefixIconColor:
                                                     Color(0xff03467d),
                                                 prefixIcon: Icon(Icons.numbers),
-                                                hintText: "Enter Pan Card Number...",
+                                                hintText:
+                                                    "Enter Pan Card Number...",
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         vertical: 10.0,
@@ -2170,7 +2188,8 @@ var details;
                                           child: Row(
                                             children: [
                                               Text("Customer Name"),
-                                              Icon(Icons.star,color:Colors.red,size:10)
+                                              Icon(Icons.star,
+                                                  color: Colors.red, size: 10)
                                             ],
                                           ),
                                         ),
@@ -2245,7 +2264,8 @@ var details;
                                             keyboardType: TextInputType.number,
                                             controller: add_contact,
                                             decoration: InputDecoration(
-                                                hintText: "Enter Contact Number...",
+                                                hintText:
+                                                    "Enter Contact Number...",
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
                                                         vertical: 10.0,
@@ -2356,8 +2376,10 @@ var details;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Customer Aadhaar Card Number"),
-                                              Icon(Icons.star,color:Colors.red,size:10)
+                                              Text(
+                                                  "Customer Aadhaar Card Number"),
+                                              Icon(Icons.star,
+                                                  color: Colors.red, size: 10)
                                             ],
                                           ),
                                         ),
@@ -2368,7 +2390,7 @@ var details;
                                             keyboardType: TextInputType.number,
                                             controller: add_Adar,
                                             decoration: InputDecoration(
-                                              counterText: "",
+                                                counterText: "",
                                                 prefixIconColor:
                                                     Color(0xff03467d),
                                                 prefixIcon: Icon(Icons.numbers),
@@ -2431,7 +2453,8 @@ var details;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Customer Aadhaar Card Photo"),
+                                              Text(
+                                                  "Customer Aadhaar Card Photo"),
                                             ],
                                           ),
                                         ),
@@ -2638,7 +2661,8 @@ var details;
                                                 prefixIconColor:
                                                     Color(0xff03467d),
                                                 prefixIcon: Icon(Icons.numbers),
-                                                hintText: "Enter Pan Card Number...",
+                                                hintText:
+                                                    "Enter Pan Card Number...",
                                                 contentPadding:
                                                     const EdgeInsets.symmetric(
                                                         vertical: 10.0,
@@ -2930,7 +2954,8 @@ var details;
                                                                   BorderRadius
                                                                       .circular(
                                                                           20),
-                                                              color: Colors.blue,
+                                                              color:
+                                                                  Colors.blue,
                                                             ),
                                                             height: 35,
                                                             width: 80,
@@ -3884,9 +3909,8 @@ var details;
       HttpHeaders.authorizationHeader: 'Bearer $isToken',
     };
 
-    // var uri = Uri.parse('https://dmlux.in/project/public/api/property/booking');
-    
-    var uri = Uri.parse(UrlHelper.schemform);
+    // var uri = Uri.parse('https://dmlux.in/project/public/api/multiplebookhold');
+     var uri = Uri.parse(UrlHelper.multiple_schemform);
     var request = http.MultipartRequest('POST', uri);
     if (image != null) {
       var stream = http.ByteStream(image.openRead());
@@ -4019,7 +4043,7 @@ var details;
           filename: fileName4);
       request.files.add(multipartFile4);
     }
-    request.fields['property_id'] = id;
+    request.fields['scheme_id'] = id;
     request.fields['associate_name'] = isname.toString();
     request.fields['associate_number'] = number.toString();
     request.fields['associate_rera_number'] = reranumber.toString();
@@ -4045,15 +4069,21 @@ var details;
     int_index == 2 ? request.fields['piid[1]'] = '' : null;
     request.fields['owner_namelist[0]'] = co_custo_name.text;
     request.fields['owner_namelist[1]'] = add_custo_name.text;
-    request.fields['contact_nolist[0]'] = co_contact.text;
-    request.fields['contact_nolist[1]'] = add_contact.text;
     request.fields['adhar_card_number_list[0]'] = co_Adar.text;
     request.fields['adhar_card_number_list[1]'] = add_Adar.text;
+    request.fields['contact_nolist[0]'] = co_contact.text;
+    request.fields['contact_nolist[1]'] = add_contact.text;
     request.fields['addresslist[0]'] = co_address.text;
     request.fields['addresslist[1]'] = add_address.text;
     request.fields['pan_card_nolist[0]'] = co_pancard.text;
     request.fields['pan_card_nolist[1]'] = add_pannumber.text;
     request.fields['description'] = description.text;
+    widget.select.length == 1 || widget.select.length == 2
+        ? request.fields['plot_name[0]'] = widget.select[0]
+        : null;
+    widget.select.length == 2
+        ? request.fields['plot_name[1]'] = widget.select[1]
+        : print("jjj");
 
     request.headers.addAll(headers);
     var response = await request.send();
@@ -4062,19 +4092,24 @@ var details;
       var responseString = await response.stream.bytesToString();
       final decodedMap = json.decode(responseString);
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(decodedMap['msg']),
-        backgroundColor: Color(0xff03467d),
-      ));
+      decodedMap['status'] == true
+          ? ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Property details update successfully"),
+              backgroundColor: Color(0xff03467d),
+            ))
+          : ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Plot already booked/Hold"),
+              backgroundColor: Color(0xff03467d),
+            ));
 
       Navigator.pushAndRemoveUntil(
-          context,  
+          context,
           MaterialPageRoute(
               builder: (BuildContext context) => SchemesSchreem()),
           (Route<dynamic> route) => route.isFirst);
     } else if (response.statusCode == 500) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Not complete"),
+        content: Text("Not compleete"),
         backgroundColor: Color(0xff03467d),
       ));
       Navigator.pushAndRemoveUntil(
@@ -4087,9 +4122,9 @@ var details;
       final decodedMap = json.decode(responseString);
 
       if (decodedMap['message'] == "Unauthenticated.") {
-       ApiServices.getLogOut(context).then((value) {
-           if(value.status==true){
-             prefs.clear();
+        ApiServices.getLogOut(context).then((value) {
+          if (value.status == true) {
+            prefs.clear();
           }
         });
         Navigator.push(

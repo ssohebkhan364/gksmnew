@@ -3,19 +3,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gkms/api/api.dart';
+import 'package:gkms/api/url_helper.dart';
 import 'package:gkms/screen/dashboard.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:gkms/screen/login.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+
 class BookHoldDeatils extends StatefulWidget {
-  var property_public_id;
+  final property_public_id;
   BookHoldDeatils(this.property_public_id);
 
   @override
@@ -24,80 +25,62 @@ class BookHoldDeatils extends StatefulWidget {
 
 class _BookHoldDeatilsState extends State<BookHoldDeatils> {
   int pageIndex = 0;
-late ConnectivityResult result;
-late StreamSubscription subscription;
-var isConnected=false;
+  late ConnectivityResult result;
+  late StreamSubscription subscription;
+  var isConnected = false;
   final pages = [
     HomeScreen(),
     const BookHoldReport(),
     const ProfileScreen(),
   ];
-  var _date;
-
-
 
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
   void _onRefresh() async {
-  await  
- 
-ApiServices.bookHoldDetails(widget.property_public_id);
-    
+    await ApiServices.bookHoldDetails(widget.property_public_id);
+
     _refreshController.refreshCompleted();
-    setState(() {
-      
-    });
+    setState(() {});
   }
- checkInternet() async {
+
+  checkInternet() async {
     result = await Connectivity().checkConnectivity();
-    print("jjjjj");
-    print(result);
- 
-       
+
     if (result != ConnectivityResult.none) {
       isConnected = true;
     } else {
-      // isLoading=false;
       isConnected = false;
-        showDialogBox();
-      
-
+      showDialogBox();
     }
-       setState(() {    ;});
- 
+    setState(() {
+      ;
+    });
   }
 
-  showDialogBox()async {
-   await Future.delayed(Duration(milliseconds: 50));
-         showDialog(
-          barrierDismissible: false,
+  showDialogBox() async {
+    await Future.delayed(Duration(milliseconds: 50));
+    showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) => CupertinoAlertDialog(
               actions: [
-                CupertinoButton(child: Text("Retry"), onPressed: () {
-    //                   scrollController.addListener(scrollPagination);
-    // schemsList(context, page);
-    // _foundUsers = _posts;
-    // data();
-                  Navigator.pop(context);
-                  checkInternet();
-                  setState(() {
-                    
-                  });
-                })
+                CupertinoButton(
+                    child: Text("Retry"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      checkInternet();
+                      setState(() {});
+                    })
               ],
               title: Text("No internet"),
               content: Text("Please check your internet connection"),
             ));
   }
 
-  startStriming()async {
-
-    subscription = Connectivity().onConnectivityChanged.listen((event) async{
+  startStriming() async {
+    subscription = Connectivity().onConnectivityChanged.listen((event) async {
       checkInternet();
-   
-     
     });
   }
 
@@ -105,18 +88,15 @@ ApiServices.bookHoldDetails(widget.property_public_id);
     var status = await Permission.storage.request();
     if (status.isGranted) {
       final baseStorage = await getExternalStorageDirectory();
-      print("uuul");
-      print(url);
- String fileName =url.split('/').last;
+
+      String fileName = url.split('/').last;
       await FlutterDownloader.enqueue(
-        url: url,
-        headers: {"auth": "test_for_sql_encoding"},
-        savedDir: baseStorage!.path,
-        showNotification: true,
-        openFileFromNotification: true,
-       fileName:
-            '${DateTime.now().millisecond}${fileName}'
-      );
+          url: url,
+          headers: {"auth": "test_for_sql_encoding"},
+          savedDir: baseStorage!.path,
+          showNotification: true,
+          openFileFromNotification: true,
+          fileName: '${DateTime.now().millisecond}${fileName}');
     }
   }
 
@@ -124,19 +104,16 @@ ApiServices.bookHoldDetails(widget.property_public_id);
   @override
   void initState() {
     getMyPostList();
-      checkInternet();
-     startStriming();
+    checkInternet();
+    startStriming();
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
-      String id = data[0];
-      DownloadTaskStatus status =(data[1]);
-      int progress = data[2];
+      DownloadTaskStatus status = (data[1]);
       if (status == DownloadTaskStatus.complete) {
-        print("Download compleete");
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Download compleete"),
-          backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+          backgroundColor: Color(0xff03467d),
         ));
       }
       setState(() {});
@@ -173,28 +150,20 @@ ApiServices.bookHoldDetails(widget.property_public_id);
             icon: const Icon(
               Icons.arrow_back,
               color: Colors.white,
-              size: 30,
             ),
             onPressed: () {
               Navigator.pop(context);
             }),
       ),
-
-      body:  SmartRefresher(
-                      controller: _refreshController,
-                      enablePullDown: true,
-                      onRefresh: _onRefresh,
+      body: SmartRefresher(
+        controller: _refreshController,
+        enablePullDown: true,
+        onRefresh: _onRefresh,
         child: FutureBuilder(
             future: ApiServices.bookHoldDetails(widget.property_public_id),
             builder: (ctx, snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data!.result != null) {
-                  var date_time =
-                      snapshot.data!.result!.proptyReportDetail!.cancelTime!;
-      
-                  String _formattedDate =
-                      DateFormat('d-MMM-yyyy HH:mm:ss').format(date_time);
-      
                   return Stack(children: [
                     SingleChildScrollView(
                       child: Padding(
@@ -226,8 +195,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                               Text(
                                                 "Scheme Name",
                                                 style: TextStyle(
-                                                    color: Color(
-                                                        0xff6c8ea1)),
+                                                    color: Color(0xff6c8ea1)),
                                               ),
                                               const SizedBox(
                                                 height: 5,
@@ -240,8 +208,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .schemeName
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -282,8 +249,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Plot/Shop Number",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -293,8 +260,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .plotName
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -335,8 +301,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Name",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -346,8 +312,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .associateName
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -386,11 +351,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                  "Associate Contact Number",
+                                              Text("Associate Contact Number",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -400,8 +364,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .associateNumber
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -440,11 +403,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                  "Associate Rera Number",
+                                              Text("Associate Rera Number",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -454,8 +416,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .associateReraNumber
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -496,8 +457,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Customer Name",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -507,8 +468,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .ownerName
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -547,11 +507,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                  "Customer Contact Number",
+                                              Text("Customer Contact Number",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -561,8 +520,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     .contactNo
                                                     .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -572,14 +530,15 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                         ],
                                       ),
                                     ),
+
                               snapshot.data!.result!.proptyReportDetail!
                                           .contactNo
                                           .toString() ==
                                       "null"
                                   ? SizedBox()
                                   : Divider(),
-                              snapshot.data!.result!.proptyReportDetail!
-                                          .address
+
+                              snapshot.data!.result!.proptyReportDetail!.address
                                           .toString() ==
                                       "null"
                                   ? SizedBox()
@@ -601,10 +560,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text("Address",
+                                              Text("Customer Address",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -622,8 +581,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                         .address
                                                         .toString(),
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -633,8 +591,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                         ],
                                       ),
                                     ),
-                              snapshot.data!.result!.proptyReportDetail!
-                                          .address
+                              snapshot.data!.result!.proptyReportDetail!.address
                                           .toString() ==
                                       "null"
                                   ? SizedBox()
@@ -664,8 +621,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Payment Method",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -694,8 +651,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                             ? 'Cheque'
                                                             : "",
                                                 style: const TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -711,14 +667,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                       "0"
                                   ? SizedBox()
                                   : Divider(),
-                              snapshot.data!.result!.proptyReportDetail!
-                                              .panCard
+                              snapshot.data!.result!.proptyReportDetail!.panCard
                                               .toString() ==
                                           "null" &&
-                                      snapshot
-                                              .data!
-                                              .result!
-                                              .proptyReportDetail!
+                                      snapshot.data!.result!.proptyReportDetail!
                                               .panCardImage
                                               .toString() ==
                                           ""
@@ -741,10 +693,10 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text("Pan Card",
+                                              Text("Customer Pan Card Details",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Row(
                                                 children: [
@@ -764,12 +716,14 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                             .panCard
                                                             .toString(),
                                                     style: TextStyle(
-                                                        color: Color(
-                                                            0xff304754),
+                                                        color:
+                                                            Color(0xff304754),
                                                         fontSize: 14,
                                                         fontWeight:
-                                                            FontWeight
-                                                                .bold),
+                                                            FontWeight.bold),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
                                                   ),
                                                   SizedBox(
                                                     height: 30,
@@ -784,47 +738,47 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                         ? Text("")
                                                         : InkWell(
                                                             onTap: () {
-      
-                                                              
-      showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                 download(
-                                                                  "https://dmlux.in/project/public/customer/pancard/${snapshot.data!.result!.proptyReportDetail!.panCardImage.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
+                                                              showDialog(
+                                                                context:
+                                                                    context,
+                                                                builder:
+                                                                    (context) {
+                                                                  return AlertDialog(
+                                                                    title: Text(
+                                                                        'Confirmation'),
+                                                                    content:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        Text(
+                                                                            'Are you sure you want to download ?'),
+                                                                        SizedBox(
+                                                                            height:
+                                                                                16),
+                                                                        ElevatedButton(
+                                                                          style:
+                                                                              ElevatedButton.styleFrom(
+                                                                            primary:
+                                                                                Color(0xff03467d),
+                                                                          ),
+                                                                          onPressed:
+                                                                              () {
+                                                                            download( '${UrlHelper.imaeurl}customer/pancard/${snapshot.data!.result!.proptyReportDetail!.panCardImage.toString()}');
+                                                                            Navigator.of(context).pop();
+                                                                          },
+                                                                          child:
+                                                                              Text('Download'),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  );
                                                                 },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-      
-                                                           
+                                                              );
                                                             },
-                                                            child: Image
-                                                                .network(
-                                                                    "https://dmlux.in/project/public/customer/pancard/${snapshot.data!.result!.proptyReportDetail!.panCardImage.toString()}"),
+                                                            child: Image.network(
+                                                                '${UrlHelper.imaeurl}customer/pancard/${snapshot.data!.result!.proptyReportDetail!.panCardImage.toString()}'),
                                                           ),
                                                   ),
                                                 ],
@@ -834,23 +788,24 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                         ],
                                       ),
                                     ),
-                              snapshot.data!.result!.proptyReportDetail!
-                                              .panCard
+                              snapshot.data!.result!.proptyReportDetail!.panCard
                                               .toString() ==
                                           "null" &&
-                                      snapshot
-                                              .data!
-                                              .result!
-                                              .proptyReportDetail!
+                                      snapshot.data!.result!.proptyReportDetail!
                                               .panCardImage
                                               .toString() ==
                                           ""
                                   ? SizedBox()
                                   : Divider(),
+
                               snapshot.data!.result!.proptyReportDetail!
-                                          .adharCard
-                                          .toString() ==
-                                      ""
+                                              .adhar_card_number
+                                              .toString() ==
+                                          "null" &&
+                                      snapshot.data!.result!.proptyReportDetail!
+                                              .adharCard
+                                              .toString() ==
+                                          ""
                                   ? SizedBox()
                                   : Padding(
                                       padding: EdgeInsets.all(4.0),
@@ -870,64 +825,95 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text("Adhar Card",
+                                              Text("Customer Aadhaar Card Details",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
-                                              SizedBox(
-                                                height: 30,
-                                                width: 40,
-                                                child: snapshot
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    snapshot
+                                                                .data!
+                                                                .result!
+                                                                .proptyReportDetail!
+                                                                .adhar_card_number
+                                                                .toString() ==
+                                                            "null"
+                                                        ? "-"
+                                                        : snapshot
                                                             .data!
                                                             .result!
                                                             .proptyReportDetail!
-                                                            .adharCard
-                                                            .toString() ==
-                                                        ""
-                                                    ? Text("")
-                                                    : InkWell(
-                                                        onTap: () {
-      
-      
-                                                               showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                    download(
-                                                              "https://dmlux.in/project/public/customer/aadhar/${snapshot.data!.result!.proptyReportDetail!.adharCard.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
+                                                            .adhar_card_number
+                                                            .toString(),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xff304754),
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  SizedBox(
+                                                    height: 30,
+                                                    width: 40,
+                                                    child: snapshot
+                                                                .data!
+                                                                .result!
+                                                                .proptyReportDetail!
+                                                                .adharCard
+                                                                .toString() ==
+                                                            ""
+                                                        ? Text("")
+                                                        : InkWell(
+                                                            onTap: () {
+                                                              showDialog(
+                                                                context:
+                                                                    context,
+                                                                builder:
+                                                                    (context) {
+                                                                  return AlertDialog(
+                                                                    title: Text(
+                                                                        'Confirmation'),
+                                                                    content:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        Text(
+                                                                            'Are you sure you want to download ?'),
+                                                                        SizedBox(
+                                                                            height:
+                                                                                16),
+                                                                        ElevatedButton(
+                                                                          style:
+                                                                              ElevatedButton.styleFrom(
+                                                                            primary:
+                                                                                Color(0xff03467d),
+                                                                          ),
+                                                                          onPressed:
+                                                                              () {
+                                                                            download('${UrlHelper.imaeurl}customer/aadhar/${snapshot.data!.result!.proptyReportDetail!.adharCard.toString()}');
+                                                                            Navigator.of(context).pop();
+                                                                          },
+                                                                          child:
+                                                                              Text('Download'),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  );
                                                                 },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
+                                                              );
+                                                            },
+                                                            child: Image.network(
+                                                                '${UrlHelper.imaeurl}customer/aadhar/${snapshot.data!.result!.proptyReportDetail!.adharCard.toString()}'),
                                                           ),
-                                                        );
-                                                      },
-                                                    );
-                                                       
-                                                        },
-                                                        child: Image.network(
-                                                            "https://dmlux.in/project/public/customer/aadhar/${snapshot.data!.result!.proptyReportDetail!.adharCard.toString()}"),
-                                                      ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
@@ -965,8 +951,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Cheque Photo",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               SizedBox(
                                                 height: 5,
                                               ),
@@ -983,46 +969,46 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     ? Text("")
                                                     : InkWell(
                                                         onTap: () {
-      
-      
-                                                          
-                                                               showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                  download(
-                                                              "https://dmlux.in/project/public/customer/cheque/${snapshot.data!.result!.proptyReportDetail!.chequePhoto.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                        
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Confirmation'),
+                                                                content: Column(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: [
+                                                                    Text(
+                                                                        'Are you sure you want to download ?'),
+                                                                    SizedBox(
+                                                                        height:
+                                                                            16),
+                                                                    ElevatedButton(
+                                                                      style: ElevatedButton
+                                                                          .styleFrom(
+                                                                        primary:
+                                                                            Color(0xff03467d),
+                                                                      ),
+                                                                      onPressed:
+                                                                          () {
+                                                                        download(
+                                                                            '${UrlHelper.imaeurl}customer/cheque/${snapshot.data!.result!.proptyReportDetail!.chequePhoto.toString()}');
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: Text(
+                                                                          'Download'),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
                                                         },
                                                         child: Image.network(
-                                                            "https://dmlux.in/project/public/customer/cheque/${snapshot.data!.result!.proptyReportDetail!.chequePhoto.toString()}"),
+                                                          '${UrlHelper.imaeurl}customer/cheque/${snapshot.data!.result!.proptyReportDetail!.chequePhoto.toString()}'),
                                                       ),
                                               ),
                                             ],
@@ -1061,8 +1047,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Attachment",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               SizedBox(
                                                 height: 5,
                                               ),
@@ -1079,45 +1065,46 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                     ? Text("")
                                                     : InkWell(
                                                         onTap: () {
-      
-                                                          
-                                                               showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                download(
-                                                              "https://dmlux.in/project/public/customer/attach/${snapshot.data!.result!.proptyReportDetail!.attachment.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                         
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                    'Confirmation'),
+                                                                content: Column(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: [
+                                                                    Text(
+                                                                        'Are you sure you want to download ?'),
+                                                                    SizedBox(
+                                                                        height:
+                                                                            16),
+                                                                    ElevatedButton(
+                                                                      style: ElevatedButton
+                                                                          .styleFrom(
+                                                                        primary:
+                                                                            Color(0xff03467d),
+                                                                      ),
+                                                                      onPressed:
+                                                                          () {
+                                                                        download(
+                                                                          '${UrlHelper.imaeurl}customer/attach/${snapshot.data!.result!.proptyReportDetail!.attachment.toString()}');
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: Text(
+                                                                          'Download'),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
                                                         },
                                                         child: Image.network(
-                                                            "https://dmlux.in/project/public/customer/attach/${snapshot.data!.result!.proptyReportDetail!.attachment.toString()}"),
+                                                            '${UrlHelper.imaeurl}customer/attach/${snapshot.data!.result!.proptyReportDetail!.attachment.toString()}'),
                                                       ),
                                               ),
                                             ],
@@ -1156,8 +1143,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                             children: [
                                               Text("Description",
                                                   style: TextStyle(
-                                                      color: Color(
-                                                          0xff6c8ea1))),
+                                                      color:
+                                                          Color(0xff6c8ea1))),
                                               const SizedBox(height: 5),
                                               Text(
                                                 snapshot
@@ -1175,8 +1162,7 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                         .description
                                                         .toString(),
                                                 style: TextStyle(
-                                                    color:
-                                                        Color(0xff304754),
+                                                    color: Color(0xff304754),
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -1204,22 +1190,20 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                         SizedBox(
                                           height: 50,
                                           child: Card(
-                                              color: Color(0xff014E78),
+                                              color: Color(0xff03467d),
                                               child: Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .start,
+                                                    MainAxisAlignment.start,
                                                 children: [
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets
-                                                            .all(8.0),
+                                                        const EdgeInsets.all(
+                                                            8.0),
                                                     child: Center(
                                                       child: Text(
                                                         "Other Owners Report Details",
                                                         style: TextStyle(
-                                                            color: Colors
-                                                                .white,
+                                                            color: Colors.white,
                                                             fontSize: 17,
                                                             fontWeight:
                                                                 FontWeight
@@ -1240,30 +1224,27 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                       height: 0,
                                     )
                                   : ListView.builder(
-                                      physics:
-                                          NeverScrollableScrollPhysics(),
+                                      physics: NeverScrollableScrollPhysics(),
                                       shrinkWrap: true,
-                                      itemCount: snapshot.data!.result!
-                                          .otherOwner!.length,
-                                      itemBuilder: (BuildContext context,
-                                          int index) {
+                                      itemCount: snapshot
+                                          .data!.result!.otherOwner!.length,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
                                         return Card(
                                             elevation: 3,
                                             child: ListTileTheme(
                                                 contentPadding:
                                                     EdgeInsets.all(4.0),
                                                 child: ExpansionTile(
-                                                  tilePadding:
-                                                      EdgeInsets.only(
-                                                          right: 10,
-                                                          top: 0,
-                                                          bottom: 0,
-                                                          left: 0),
+                                                  tilePadding: EdgeInsets.only(
+                                                      right: 10,
+                                                      top: 0,
+                                                      bottom: 0,
+                                                      left: 0),
                                                   title: Container(
                                                     child: Padding(
                                                       padding:
-                                                          const EdgeInsets
-                                                                  .only(
+                                                          const EdgeInsets.only(
                                                               left: 8,
                                                               right: 8),
                                                       child: Row(
@@ -1287,8 +1268,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                               Text(
                                                                   "Customer Name",
                                                                   style: TextStyle(
-                                                                      color:
-                                                                          Color(0xff6c8ea1))),
+                                                                      color: Color(
+                                                                          0xff6c8ea1))),
                                                               SizedBox(
                                                                 height: 5,
                                                               ),
@@ -1306,7 +1287,8 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                                     fontSize:
                                                                         14,
                                                                     fontWeight:
-                                                                        FontWeight.bold),
+                                                                        FontWeight
+                                                                            .bold),
                                                               ),
                                                             ],
                                                           ),
@@ -1320,208 +1302,304 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                   children: [
                                                     Padding(
                                                       padding:
-                                                          const EdgeInsets
-                                                              .all(12.0),
-                                                      child: Column(
-                                                          children: [
-                                                            Divider(),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .contactNo
-                                                                        .toString() ==
-                                                                    "null"
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
+                                                          const EdgeInsets.all(
+                                                              12.0),
+                                                      child: Column(children: [
+                                                        Divider(),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .contactNo
+                                                                    .toString() ==
+                                                                "null"
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/17.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
                                                                       children: [
-                                                                        Image.asset(
-                                                                          "assets/images/17.png",
-                                                                          height: 25,
-                                                                          width: 25,
-                                                                        ),
+                                                                        Text(
+                                                                            'Customer Contact Number',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
                                                                         SizedBox(
-                                                                          width: 15,
+                                                                          height:
+                                                                              5,
                                                                         ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text('Contact Number', style: TextStyle(color: Color(0xff6c8ea1))),
-                                                                            SizedBox(
-                                                                              height: 5,
-                                                                            ),
-                                                                            Text(
-                                                                              snapshot.data!.result!.otherOwner![index].contactNo.toString(),
-                                                                              style: const TextStyle(color: Color(0xff304754), fontSize: 14, fontWeight: FontWeight.bold),
-                                                                            )
-                                                                          ],
-                                                                        ),
+                                                                        Text(
+                                                                          snapshot
+                                                                              .data!
+                                                                              .result!
+                                                                              .otherOwner![index]
+                                                                              .contactNo
+                                                                              .toString(),
+                                                                          style: const TextStyle(
+                                                                              color: Color(0xff304754),
+                                                                              fontSize: 14,
+                                                                              fontWeight: FontWeight.bold),
+                                                                        )
                                                                       ],
                                                                     ),
-                                                                  ),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .contactNo
-                                                                        .toString() ==
-                                                                    "null"
-                                                                ? SizedBox()
-                                                                : Divider(),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .address
-                                                                        .toString() ==
-                                                                    "null"
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
-                                                                      children: [
-                                                                        Image.asset(
-                                                                          "assets/images/18.png",
-                                                                          height: 25,
-                                                                          width: 25,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width: 15,
-                                                                        ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text('Addresss', style: TextStyle(color: Color(0xff6c8ea1))),
-                                                                            SizedBox(
-                                                                              height: 5,
-                                                                            ),
-                                                                            Text(
-                                                                              snapshot.data!.result!.otherOwner![index].address.toString() == "null" ? "-" : snapshot.data!.result!.otherOwner![index].address.toString(),
-                                                                              style: const TextStyle(color: Color(0xff304754), fontSize: 14, fontWeight: FontWeight.bold),
-                                                                            )
-                                                                          ],
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                  ),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .address
-                                                                        .toString() ==
-                                                                    "null"
-                                                                ? SizedBox()
-                                                                : Divider(),
-                                                            snapshot.data!.result!.otherOwner![index].panCard.toString() ==
-                                                                        "null" &&
-                                                                    snapshot.data!.result!.otherOwner![index].panCardImage.toString() ==
-                                                                        ""
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
-                                                                      children: [
-                                                                        Image.asset(
-                                                                          "assets/images/20.png",
-                                                                          height: 25,
-                                                                          width: 25,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width: 15,
-                                                                        ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text('Pan Card', style: TextStyle(color: Color(0xff6c8ea1))),
-                                                                            SizedBox(
-                                                                              height: 5,
-                                                                            ),
-                                                                            Row(
-                                                                              children: [
-                                                                                Text(
-                                                                                  snapshot.data!.result!.otherOwner![index].panCard.toString() == "null" ? "-" : snapshot.data!.result!.otherOwner![index].panCard.toString(),
-                                                                                  style: const TextStyle(color: Color(0xff304754), fontSize: 14, fontWeight: FontWeight.bold),
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  height: 30,
-                                                                                  width: 40,
-                                                                                  child: snapshot.data!.result!.otherOwner![index].panCardImage.toString() == ""
-                                                                                      ? Text("")
-                                                                                      : InkWell(
-                                                                                          onTap: () {
-      
-                                                                                              showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                 download("https://dmlux.in/project/public/customer/pancard/${snapshot.data!.result!.otherOwner![index].panCardImage.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
+                                                                  ],
+                                                                ),
                                                               ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-                                                                                         
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .contactNo
+                                                                    .toString() ==
+                                                                "null"
+                                                            ? SizedBox()
+                                                            : Divider(),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .address
+                                                                    .toString() ==
+                                                                "null"
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/18.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Text(
+                                                                            'Customer Address',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              5,
+                                                                        ),
+                                                                        Text(
+                                                                          snapshot.data!.result!.otherOwner![index].address.toString() == "null"
+                                                                              ? "-"
+                                                                              : snapshot.data!.result!.otherOwner![index].address.toString(),
+                                                                          style: const TextStyle(
+                                                                              color: Color(0xff304754),
+                                                                              fontSize: 14,
+                                                                              fontWeight: FontWeight.bold),
+                                                                        )
+                                                                      ],
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .address
+                                                                    .toString() ==
+                                                                "null"
+                                                            ? SizedBox()
+                                                            : Divider(),
+                                                        snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .panCard
+                                                                        .toString() ==
+                                                                    "null" &&
+                                                                snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .panCardImage
+                                                                        .toString() ==
+                                                                    ""
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/20.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Text(
+                                                                            'Customer Pan Card Details',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              5,
+                                                                        ),
+                                                                        Row(
+                                                                          children: [
+                                                                            Text(
+                                                                              snapshot.data!.result!.otherOwner![index].panCard.toString() == "null" ? "-" : snapshot.data!.result!.otherOwner![index].panCard.toString(),
+                                                                              style: const TextStyle(color: Color(0xff304754), fontSize: 14, fontWeight: FontWeight.bold),
+                                                                            ),
+                                                                            SizedBox(
+                                                                              height: 30,
+                                                                              width: 40,
+                                                                              child: snapshot.data!.result!.otherOwner![index].panCardImage.toString() == ""
+                                                                                  ? Text("")
+                                                                                  : InkWell(
+                                                                                      onTap: () {
+                                                                                        showDialog(
+                                                                                          context: context,
+                                                                                          builder: (context) {
+                                                                                            return AlertDialog(
+                                                                                              title: Text('Confirmation'),
+                                                                                              content: Column(
+                                                                                                mainAxisSize: MainAxisSize.min,
+                                                                                                children: [
+                                                                                                  Text('Are you sure you want to download ?'),
+                                                                                                  SizedBox(height: 16),
+                                                                                                  ElevatedButton(
+                                                                                                    style: ElevatedButton.styleFrom(
+                                                                                                      primary: Color(0xff03467d),
+                                                                                                    ),
+                                                                                                    onPressed: () {
+                                                                                                      download( '${UrlHelper.imaeurl}customer/pancard/${snapshot.data!.result!.otherOwner![index].panCardImage.toString()}');
+                                                                                                      Navigator.of(context).pop();
+                                                                                                    },
+                                                                                                    child: Text('Download'),
+                                                                                                  ),
+                                                                                                ],
+                                                                                              ),
+                                                                                            );
                                                                                           },
-                                                                                          child: Image.network("https://dmlux.in/project/public/customer/pancard/${snapshot.data!.result!.otherOwner![index].panCardImage.toString()}"),
-                                                                                        ),
-                                                                                ),
-                                                                              ],
+                                                                                        );
+                                                                                      },
+                                                                                      child: Image.network( '${UrlHelper.imaeurl}customer/pancard/${snapshot.data!.result!.otherOwner![index].panCardImage.toString()}'),
+                                                                                    ),
                                                                             ),
                                                                           ],
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                  ),
-                                                            snapshot.data!.result!.otherOwner![index].panCard.toString() ==
-                                                                        "null" &&
-                                                                    snapshot.data!.result!.otherOwner![index].panCardImage.toString() ==
-                                                                        ""
-                                                                ? SizedBox()
-                                                                : Divider(),
-                                                            snapshot.data!.result!.otherOwner![index]
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                        snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .panCard
+                                                                        .toString() ==
+                                                                    "null" &&
+                                                                snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .panCardImage
+                                                                        .toString() ==
+                                                                    ""
+                                                            ? SizedBox()
+                                                            : Divider(),
+                                                        snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .adhar_card_number
+                                                                        .toString() ==
+                                                                    "null" &&
+                                                                snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
                                                                         .adharCard
                                                                         .toString() ==
                                                                     ""
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/21.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
                                                                       children: [
-                                                                        Image.asset(
-                                                                          "assets/images/21.png",
-                                                                          height: 25,
-                                                                          width: 25,
-                                                                        ),
+                                                                        Text(
+                                                                            'Customer Aadhaar Card Details',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
                                                                         SizedBox(
-                                                                          width: 15,
+                                                                          height:
+                                                                              5,
                                                                         ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                        Row(
                                                                           children: [
-                                                                            Text('Addhar Card', style: TextStyle(color: Color(0xff6c8ea1))),
+                                                                            Text(
+                                                                              snapshot.data!.result!.otherOwner![index].adhar_card_number.toString() == "null" ? "-" : snapshot.data!.result!.otherOwner![index].adhar_card_number.toString(),
+                                                                              style: const TextStyle(color: Color(0xff304754), fontSize: 14, fontWeight: FontWeight.bold),
+                                                                            ),
                                                                             SizedBox(
-                                                                              height: 5,
+                                                                              width: 10,
                                                                             ),
                                                                             SizedBox(
                                                                               height: 30,
@@ -1530,411 +1608,239 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                                                                                   ? Text("")
                                                                                   : InkWell(
                                                                                       onTap: () {
-      
-           showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                 download("https://dmlux.in/project/public/customer/aadhar/${snapshot.data!.result!.otherOwner![index].adharCard.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-      
-                                                                                     
+                                                                                        showDialog(
+                                                                                          context: context,
+                                                                                          builder: (context) {
+                                                                                            return AlertDialog(
+                                                                                              title: Text('Confirmation'),
+                                                                                              content: Column(
+                                                                                                mainAxisSize: MainAxisSize.min,
+                                                                                                children: [
+                                                                                                  Text('Are you sure you want to download ?'),
+                                                                                                  SizedBox(height: 16),
+                                                                                                  ElevatedButton(
+                                                                                                    style: ElevatedButton.styleFrom(
+                                                                                                      primary: Color(0xff03467d),
+                                                                                                    ),
+                                                                                                    onPressed: () {
+                                                                                                      download( '${UrlHelper.imaeurl}customer/aadhar/${snapshot.data!.result!.otherOwner![index].adharCard.toString()}');
+                                                                                                      Navigator.of(context).pop();
+                                                                                                    },
+                                                                                                    child: Text('Download'),
+                                                                                                  ),
+                                                                                                ],
+                                                                                              ),
+                                                                                            );
+                                                                                          },
+                                                                                        );
                                                                                       },
-                                                                                      child: Image.network("https://dmlux.in/project/public/customer/aadhar/${snapshot.data!.result!.otherOwner![index].adharCard.toString()}"),
+                                                                                      child: Image.network( '${UrlHelper.imaeurl}customer/aadhar/${snapshot.data!.result!.otherOwner![index].adharCard.toString()}'),
                                                                                     ),
                                                                             ),
                                                                           ],
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                  ),
-                                                            snapshot.data!.result!.otherOwner![index]
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                        snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
+                                                                        .adhar_card_number
+                                                                        .toString() ==
+                                                                    "null" &&
+                                                                snapshot
+                                                                        .data!
+                                                                        .result!
+                                                                        .otherOwner![
+                                                                            index]
                                                                         .adharCard
                                                                         .toString() ==
                                                                     ""
-                                                                ? SizedBox()
-                                                                : Divider(),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .chequePhoto
-                                                                        .toString() ==
-                                                                    ""
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
+                                                            ? SizedBox()
+                                                            : Divider(),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .chequePhoto
+                                                                    .toString() ==
+                                                                ""
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/11.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
                                                                       children: [
-                                                                        Image.asset(
-                                                                          "assets/images/11.png",
-                                                                          height: 25,
-                                                                          width: 25,
+                                                                        Text(
+                                                                            'Cheque_photo',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              5,
                                                                         ),
                                                                         SizedBox(
-                                                                          width: 15,
-                                                                        ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text('Cheque_photo', style: TextStyle(color: Color(0xff6c8ea1))),
-                                                                            SizedBox(
-                                                                              height: 5,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              height: 30,
-                                                                              width: 40,
-                                                                              child: snapshot.data!.result!.otherOwner![index].chequePhoto.toString() == ""
-                                                                                  ? Text("")
-                                                                                  : InkWell(
-                                                                                      onTap: () {
-      
-        showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                 download("https://dmlux.in/project/public/customer/cheque/${snapshot.data!.result!.otherOwner![index].chequePhoto.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-      
-                                                                                    
+                                                                          height:
+                                                                              30,
+                                                                          width:
+                                                                              40,
+                                                                          child: snapshot.data!.result!.otherOwner![index].chequePhoto.toString() == ""
+                                                                              ? Text("")
+                                                                              : InkWell(
+                                                                                  onTap: () {
+                                                                                    showDialog(
+                                                                                      context: context,
+                                                                                      builder: (context) {
+                                                                                        return AlertDialog(
+                                                                                          title: Text('Confirmation'),
+                                                                                          content: Column(
+                                                                                            mainAxisSize: MainAxisSize.min,
+                                                                                            children: [
+                                                                                              Text('Are you sure you want to download ?'),
+                                                                                              SizedBox(height: 16),
+                                                                                              ElevatedButton(
+                                                                                                style: ElevatedButton.styleFrom(
+                                                                                                  primary: Color(0xff03467d),
+                                                                                                ),
+                                                                                                onPressed: () {
+                                                                                                  download( '${UrlHelper.imaeurl}customer/cheque/${snapshot.data!.result!.otherOwner![index].chequePhoto.toString()}');
+                                                                                                  Navigator.of(context).pop();
+                                                                                                },
+                                                                                                child: Text('Download'),
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
+                                                                                        );
                                                                                       },
-                                                                                      child: Image.network("https://dmlux.in/project/public/customer/cheque/${snapshot.data!.result!.otherOwner![index].chequePhoto.toString()}"),
-                                                                                    ),
-                                                                            ),
-                                                                          ],
+                                                                                    );
+                                                                                  },
+                                                                                  child: Image.network( '${UrlHelper.imaeurl}customer/cheque/${snapshot.data!.result!.otherOwner![index].chequePhoto.toString()}'),
+                                                                                ),
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                  ),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .chequePhoto
-                                                                        .toString() ==
-                                                                    ""
-                                                                ? SizedBox()
-                                                                : Divider(),
-                                                            snapshot.data!.result!.otherOwner![index]
-                                                                        .attachment
-                                                                        .toString() ==
-                                                                    ""
-                                                                ? SizedBox()
-                                                                : Padding(
-                                                                    padding:
-                                                                        const EdgeInsets.all(8.0),
-                                                                    child:
-                                                                        Row(
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .chequePhoto
+                                                                    .toString() ==
+                                                                ""
+                                                            ? SizedBox()
+                                                            : Divider(),
+                                                        snapshot
+                                                                    .data!
+                                                                    .result!
+                                                                    .otherOwner![
+                                                                        index]
+                                                                    .attachment
+                                                                    .toString() ==
+                                                                ""
+                                                            ? SizedBox()
+                                                            : Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(
+                                                                        8.0),
+                                                                child: Row(
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/12.png",
+                                                                      height:
+                                                                          25,
+                                                                      width: 25,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 15,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
                                                                       children: [
-                                                                        Image.asset(
-                                                                          "assets/images/12.png",
-                                                                          height: 25,
-                                                                          width: 25,
+                                                                        Text(
+                                                                            'Attachment',
+                                                                            style:
+                                                                                TextStyle(color: Color(0xff6c8ea1))),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              5,
                                                                         ),
                                                                         SizedBox(
-                                                                          width: 15,
-                                                                        ),
-                                                                        Column(
-                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Text('Attachment', style: TextStyle(color: Color(0xff6c8ea1))),
-                                                                            SizedBox(
-                                                                              height: 5,
-                                                                            ),
-                                                                            SizedBox(
-                                                                              height: 30,
-                                                                              width: 40,
-                                                                              child: snapshot.data!.result!.otherOwner![index].attachment.toString() == ""
-                                                                                  ? Text("")
-                                                                                  : InkWell(
-                                                                                      onTap: () {
-      
-      showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: Text(
-                                                              'Confirmation'),
-                                                          content: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              Text(
-                                                                  'Are you sure you want to download ?'),
-                                                              SizedBox(
-                                                                  height:
-                                                                      16),
-                                                              ElevatedButton(
-                                                                  style: ElevatedButton.styleFrom(primary:Color(0xff03467d),),
-                                                                onPressed:
-                                                                    () {
-                                                                 download("https://dmlux.in/project/public/customer/attach/${snapshot.data!.result!.otherOwner![index].attachment.toString()}");
-                                                                  Navigator.of(context)
-                                                                      .pop();
-                                                                },
-                                                                child: Text(
-                                                                    'Download'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    );
-      
-                                                                                     
+                                                                          height:
+                                                                              30,
+                                                                          width:
+                                                                              40,
+                                                                          child: snapshot.data!.result!.otherOwner![index].attachment.toString() == ""
+                                                                              ? Text("")
+                                                                              : InkWell(
+                                                                                  onTap: () {
+                                                                                    showDialog(
+                                                                                      context: context,
+                                                                                      builder: (context) {
+                                                                                        return AlertDialog(
+                                                                                          title: Text('Confirmation'),
+                                                                                          content: Column(
+                                                                                            mainAxisSize: MainAxisSize.min,
+                                                                                            children: [
+                                                                                              Text('Are you sure you want to download ?'),
+                                                                                              SizedBox(height: 16),
+                                                                                              ElevatedButton(
+                                                                                                style: ElevatedButton.styleFrom(
+                                                                                                  primary: Color(0xff03467d),
+                                                                                                ),
+                                                                                                onPressed: () {
+                                                                                                  download( '${UrlHelper.imaeurl}customer/attach/${snapshot.data!.result!.otherOwner![index].attachment.toString()}');
+                                                                                                  Navigator.of(context).pop();
+                                                                                                },
+                                                                                                child: Text('Download'),
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
+                                                                                        );
                                                                                       },
-                                                                                      child: Image.network("https://dmlux.in/project/public/customer/attach/${snapshot.data!.result!.otherOwner![index].attachment.toString()}"),
-                                                                                    ),
-                                                                            ),
-                                                                          ],
+                                                                                    );
+                                                                                  },
+                                                                                  child: Image.network( '${UrlHelper.imaeurl}customer/attach/${snapshot.data!.result!.otherOwner![index].attachment.toString()}'),
+                                                                                ),
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                  )
-                                                          ]),
+                                                                  ],
+                                                                ),
+                                                              )
+                                                      ]),
                                                     )
                                                   ],
                                                 )));
                                       }),
-                              snapshot.data!.result!.proptyReportDetail!
-                                          .cancelBy
-                                          .toString() ==
-                                      'null'
-                                  ? SizedBox(
-                                      height: 0,
-                                    )
-                                  : Column(
-                                      children: [
-                                        SizedBox(
-                                          width: double.infinity,
-                                          height: 50,
-                                          child: Card(
-                                              color: Color(0xff014E78),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .start,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets
-                                                            .all(8.0),
-                                                    child: Center(
-                                                      child: Text(
-                                                        "Cancel Report Details",
-                                                        style: TextStyle(
-                                                            color: Colors
-                                                                .white,
-                                                            fontSize: 17,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              )),
-                                        ),
-                                      ],
-                                    ),
-                              snapshot.data!.result!.proptyReportDetail!
-                                          .cancelBy
-                                          .toString() ==
-                                      'null'
-                                  ? SizedBox(
-                                      height: 0,
-                                    )
-                                  : Container(
-                                      width: double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            offset: Offset(0, 0),
-                                            blurRadius: 2,
-                                            spreadRadius: 2,
-                                            color: Colors.black26,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.all(12.0),
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Image.asset(
-                                                  "assets/images/25.png",
-                                                  height: 25,
-                                                  width: 25,
-                                                ),
-                                                SizedBox(
-                                                  width: 15,
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    Text('Reason',
-                                                        style: TextStyle(
-                                                            color: Color(
-                                                                0xff6c8ea1))),
-                                                    const SizedBox(
-                                                      height: 5,
-                                                    ),
-                                                    Text(
-                                                      snapshot
-                                                          .data!
-                                                          .result!
-                                                          .proptyReportDetail!
-                                                          .cancelReason
-                                                          .toString(),
-                                                      style: const TextStyle(
-                                                          color: Color(
-                                                              0xff304754),
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            Divider(),
-                                            Row(
-                                              children: [
-                                                Image.asset(
-                                                  "assets/images/26.png",
-                                                  height: 25,
-                                                  width: 25,
-                                                ),
-                                                SizedBox(
-                                                  width: 15,
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    Text('Person',
-                                                        style: TextStyle(
-                                                            color: Color(
-                                                                0xff6c8ea1))),
-                                                    const SizedBox(
-                                                      height: 5,
-                                                    ),
-                                                    Text(
-                                                      snapshot
-                                                          .data!
-                                                          .result!
-                                                          .proptyReportDetail!
-                                                          .cancelBy
-                                                          .toString(),
-                                                      style: const TextStyle(
-                                                          color: Color(
-                                                              0xff304754),
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            const Divider(),
-                                            Row(
-                                              children: [
-                                                Image.asset(
-                                                  "assets/images/27.png",
-                                                  height: 25,
-                                                  width: 25,
-                                                ),
-                                                SizedBox(
-                                                  width: 15,
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    Text('Cancel Time',
-                                                        style: TextStyle(
-                                                            color: Color(
-                                                                0xff6c8ea1))),
-                                                    const SizedBox(
-                                                      height: 5,
-                                                    ),
-                                                    Text(
-                                                      _formattedDate,
-                                                      style: const TextStyle(
-                                                          color: Color(
-                                                              0xff304754),
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            const Divider(),
-                                          ],
-                                        ),
-                                      )),
+                           
+                            
                             ]),
                       ),
                     )
@@ -1942,16 +1848,13 @@ ApiServices.bookHoldDetails(widget.property_public_id);
                 }
               }
               return Center(
-                        child: SpinKitCircle(
-                            color: Color(
-                                                              0xff014E78),
-                          size: 50,
-                          ),
-                      );
+                child: SpinKitCircle(
+                  color: Color(0xff03467d),
+                  size: 50,
+                ),
+              );
             }),
       ),
-
-      // bottomNavigationBar: buildMyNavBar(context),
     );
   }
 
@@ -1962,8 +1865,12 @@ ApiServices.bookHoldDetails(widget.property_public_id);
       setState(() {});
 
       if (value.message.toString() == "Unauthenticated.") {
-        ApiServices.getLogOut(context).then((value) {});
-        prefs.clear();
+        ApiServices.getLogOut(context).then((value) {
+          if (value.status == true) {
+            prefs.clear();
+          }
+        });
+
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => LoginScreen())));
       }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gkms/api/api.dart';
 import 'package:gkms/screen/login.dart';
-
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,8 +26,6 @@ class _forgotpasswordState extends State<forgotpassword> {
 
   checkInternet() async {
     result = await Connectivity().checkConnectivity();
-    print("jjjjj");
-    print(result);
 
     if (result != ConnectivityResult.none) {
       isConnected = true;
@@ -52,10 +49,6 @@ class _forgotpasswordState extends State<forgotpassword> {
                 CupertinoButton(
                     child: Text("Retry"),
                     onPressed: () {
-                      //                   scrollController.addListener(scrollPagination);
-                      // schemsList(context, page);
-                      // _foundUsers = _posts;
-                      // data();
                       Navigator.pop(context);
                       checkInternet();
                       setState(() {});
@@ -86,7 +79,7 @@ class _forgotpasswordState extends State<forgotpassword> {
               Center(
                   child: isLoading
                       ? SpinKitCircle(
-                          color: Color(0xff014E78),
+                          color: Color(0xff03467d),
                           size: 50,
                         )
                       : null),
@@ -97,7 +90,7 @@ class _forgotpasswordState extends State<forgotpassword> {
                 const Text(
                   " Forgot Password",
                   style: TextStyle(
-                      color: Color(0xff014E78),
+                      color: Color(0xff03467d),
                       fontSize: 30,
                       fontWeight: FontWeight.w600),
                 ),
@@ -109,7 +102,7 @@ class _forgotpasswordState extends State<forgotpassword> {
                       Text(
                         "Welcome To Forgot Password Page !",
                         style:
-                            TextStyle(color: Color(0xff014E78), fontSize: 16),
+                            TextStyle(color: Color(0xff03467d), fontSize: 16),
                       ),
                     ],
                   ),
@@ -222,8 +215,8 @@ class _forgotpasswordState extends State<forgotpassword> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content:
-                                Text("OTP will be sent your registred email !"),
-                            backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+                                Text("OTP will be sent your registered email and contact number!"),
+                            backgroundColor: Color(0xff03467d),
                           ));
                         } else {
                           setState(() {
@@ -233,7 +226,7 @@ class _forgotpasswordState extends State<forgotpassword> {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
                             content: Text("please enter valid email !"),
-                            backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+                            backgroundColor: Color(0xff03467d),
                           ));
                         }
                       });
@@ -249,7 +242,7 @@ class _forgotpasswordState extends State<forgotpassword> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: Color(0xff014E78),
+                          color: Color(0xff03467d),
                         ),
                         child: Center(
                           child: Text(
@@ -276,7 +269,7 @@ class _forgotpasswordState extends State<forgotpassword> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: Color(0xff014E78),
+                          color: Color(0xff03467d),
                         ),
                         child: Center(
                           child: Text(

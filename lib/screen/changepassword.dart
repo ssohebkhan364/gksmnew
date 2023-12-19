@@ -3,13 +3,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gkms/api/api.dart';
 import 'package:gkms/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+
 class changepassword extends StatefulWidget {
   const changepassword({super.key});
-
   @override
   State<changepassword> createState() => _changepasswordState();
 }
@@ -22,8 +21,8 @@ class _changepasswordState extends State<changepassword> {
   bool oldpasswordVisible = false;
   bool newpasswordVisible = false;
   late ConnectivityResult result;
-late StreamSubscription subscription;
-var isConnected=false;
+  late StreamSubscription subscription;
+  var isConnected = false;
   @override
   void initState() {
     super.initState();
@@ -31,53 +30,43 @@ var isConnected=false;
     newpasswordVisible = true;
   }
 
-
-checkInternet() async {
+  checkInternet() async {
     result = await Connectivity().checkConnectivity();
-    print("jjjjj");
-    print(result);
- 
-       
     if (result != ConnectivityResult.none) {
       isConnected = true;
     } else {
-      isLoading=false;
+      isLoading = false;
       isConnected = false;
-        showDialogBox();
-      
-
+      showDialogBox();
     }
-       setState(() {    ;});
- 
+    setState(() {
+      ;
+    });
   }
 
-  showDialogBox()async {
-   await Future.delayed(Duration(milliseconds: 50));
-         showDialog(
-          barrierDismissible: false,
+  showDialogBox() async {
+    await Future.delayed(Duration(milliseconds: 50));
+    showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) => CupertinoAlertDialog(
               actions: [
-                CupertinoButton(child: Text("Retry"), onPressed: () {
-
-                  Navigator.pop(context);
-                  checkInternet();
-                  setState(() {
-                    
-                  });
-                })
+                CupertinoButton(
+                    child: Text("Retry"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      checkInternet();
+                      setState(() {});
+                    })
               ],
               title: Text("No internet"),
               content: Text("Please check your internet connection"),
             ));
   }
 
-  startStriming()async {
-
-    subscription = Connectivity().onConnectivityChanged.listen((event) async{
+  startStriming() async {
+    subscription = Connectivity().onConnectivityChanged.listen((event) async {
       checkInternet();
-   
-     
     });
   }
 
@@ -90,17 +79,36 @@ checkInternet() async {
       child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
-            backgroundColor: Color(0xff014E78),
-            title: Text("Change Password"),
-          ),
+            backgroundColor: Color(0xff03467d),
+           
+
+
+              leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                // size: 30,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+          title: Text(
+            "Change Password",
+              style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold),
+          ),),
           body: Form(
             key: _formKey,
             child: Stack(children: [
-              Center(child: isLoading ?SpinKitCircle(
-                  color: Color(
-                                                    0xff014E78),
-                size: 50,
-                ) : null),
+              Center(
+                  child: isLoading
+                      ? SpinKitCircle(
+                          color: Color(0xff03467d),
+                          size: 50,
+                        )
+                      : null),
               Column(
                 children: [
                   const SizedBox(
@@ -112,7 +120,7 @@ checkInternet() async {
                       Text(
                         "Change Password",
                         style: TextStyle(
-                            color: Color(0xff014E78),
+                            color: Color(0xff03467d),
                             fontSize: 30,
                             fontWeight: FontWeight.w600),
                       ),
@@ -263,44 +271,64 @@ checkInternet() async {
                           isLoading = true;
                         });
 
-                        ApiServices.chngaePassword(map).then(
-                          (value) async {
+                        ApiServices.chngaePassword(map).then((value) async {
+                          if (value.message.toString() == "Unauthenticated.") {
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            ApiServices.getLogOut(context).then((value) {
+                              if (value.status == true) {
+                                prefs.clear();
+                              }
+                            });
+
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) => LoginScreen())));
                             setState(() {
                               isLoading = false;
                             });
-
-                            if (value.status == true) {
+                          } else {
+                            if (value.message == "Password not matched !!") {
                               ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Password Updated..!!"),
-                                backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+                                  .showSnackBar(SnackBar(
+                                content: Text(value.message.toString()),
+                                backgroundColor: Color(0xff03467d),
                               ));
+                              setState(() {
+                                isLoading = false;
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(value.message.toString()),
+                                backgroundColor: Color(0xff03467d),
+                              ));
+
                               SharedPreferences prefs =
                                   await SharedPreferences.getInstance();
-                              prefs.clear();
+
+                              ApiServices.getLogOut(context).then((value) {
+                                if (value.status == true) {
+                                  prefs.clear();
+                                }
+                              });
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           const LoginScreen()));
-                            } else {
+
                               setState(() {
                                 isLoading = false;
                               });
-
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Please enter valid password!"),
-                                backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-                              ));
                             }
-                          },
-                        );
+                          }
+
                           checkInternet();
-     startStriming();
-     setState(() {
-       
-     });
+                          startStriming();
+                          setState(() {});
+                        });
                       }
                     },
                     child: Padding(
@@ -310,7 +338,7 @@ checkInternet() async {
                           width: double.infinity,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
-                            color: Color(0xff014E78),
+                            color: Color(0xff03467d),
                           ),
                           child: const Center(
                             child: Text(

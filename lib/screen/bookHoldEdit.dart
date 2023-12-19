@@ -1,4 +1,5 @@
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:gkms/api/url_helper.dart';
 import 'package:path/path.dart' as Path;
 import 'dart:convert';
 import 'dart:io';
@@ -15,10 +16,11 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+
+// ignore: must_be_immutable
 class BookHoldEdit extends StatefulWidget {
   var isname;
   var number;
@@ -38,8 +40,8 @@ class BookHoldEdit extends StatefulWidget {
 
 class _BookHoldEditState extends State<BookHoldEdit> {
   late ConnectivityResult result1;
-late StreamSubscription subscription;
-var isConnected=false;
+  late StreamSubscription subscription;
+  var isConnected = false;
   var isname;
   var number;
   var reranumber;
@@ -77,16 +79,19 @@ var isConnected=false;
   TextEditingController address = TextEditingController();
   TextEditingController pan_number = TextEditingController();
   TextEditingController description1 = TextEditingController();
+  TextEditingController Adar = TextEditingController();
 
   TextEditingController co_custo_name = TextEditingController();
   TextEditingController co_contact = TextEditingController();
   TextEditingController co_address = TextEditingController();
   TextEditingController co_pancard = TextEditingController();
+  TextEditingController co_Adar = TextEditingController();
 
   TextEditingController add_custo_name = TextEditingController();
   TextEditingController add_contact = TextEditingController();
   TextEditingController add_address = TextEditingController();
   TextEditingController add_pannumber = TextEditingController();
+  TextEditingController add_Adar = TextEditingController();
 
   String? filename;
   PlatformFile? pickedFile;
@@ -111,57 +116,46 @@ var isConnected=false;
   var add_cheque;
   var add_pdfFile;
 
-
- checkInternet() async {
+  checkInternet() async {
     result1 = await Connectivity().checkConnectivity();
-    print("jjjjj");
-    print(result);
- 
-       
+
     if (result1 != ConnectivityResult.none) {
       isConnected = true;
     } else {
-      isLoading=false;
+      isLoading = false;
       isConnected = false;
-        showDialogBox();
-      
-
+      showDialogBox();
     }
-       setState(() {    ;});
- 
+    setState(() {
+      ;
+    });
   }
 
-  showDialogBox()async {
-   await Future.delayed(Duration(milliseconds: 50));
-         showDialog(
-          barrierDismissible: false,
+  showDialogBox() async {
+    await Future.delayed(Duration(milliseconds: 50));
+    showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) => CupertinoAlertDialog(
               actions: [
-                CupertinoButton(child: Text("Retry"), onPressed: () {
-  
-                  Navigator.pop(context);
-                  checkInternet();
-                  setState(() {
-                    
-                  });
-                })
+                CupertinoButton(
+                    child: Text("Retry"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      checkInternet();
+                      setState(() {});
+                    })
               ],
               title: Text("No internet"),
               content: Text("Please check your internet connection"),
             ));
   }
 
-  startStriming()async {
-
-    subscription = Connectivity().onConnectivityChanged.listen((event) async{
+  startStriming() async {
+    subscription = Connectivity().onConnectivityChanged.listen((event) async {
       checkInternet();
-   
-     
     });
   }
-
-
 
   void clearText() {
     add_custo_name.clear();
@@ -190,6 +184,7 @@ var isConnected=false;
   }
 
   var co__owner;
+  var co__aadharnum;
   var co__contact;
   var co__address;
   var co__pancardd;
@@ -201,6 +196,7 @@ var isConnected=false;
   var add__owner;
   var add__contact;
   var add__address;
+  var add__Adharnum;
   var add__pancardd;
   var add__adar;
   var add__ceque;
@@ -595,16 +591,14 @@ var isConnected=false;
     var status = await Permission.storage.request();
     if (status.isGranted) {
       final baseStorage = await getExternalStorageDirectory();
- String fileName =url.split('/').last;
+      String fileName = url.split('/').last;
       await FlutterDownloader.enqueue(
-        url: url,
-        headers: {"auth": "test_for_sql_encoding"},
-        savedDir: baseStorage!.path,
-        showNotification: true,
-        openFileFromNotification: true,
-          fileName:
-            '${DateTime.now().millisecond}${fileName}'
-      );
+          url: url,
+          headers: {"auth": "test_for_sql_encoding"},
+          savedDir: baseStorage!.path,
+          showNotification: true,
+          openFileFromNotification: true,
+          fileName: '${DateTime.now().millisecond}${fileName}');
     }
   }
 
@@ -613,19 +607,19 @@ var isConnected=false;
   @override
   void initState() {
     book();
-     checkInternet();
-     startStriming();
+    checkInternet();
+    startStriming();
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
       String id = data[0];
-      DownloadTaskStatus status =(data[1]);
+      DownloadTaskStatus status = (data[1]);
       int progress = data[2];
       if (status == DownloadTaskStatus.complete) {
         ScaffoldMessenger.of(context as BuildContext)
             .showSnackBar(const SnackBar(
           content: Text("Download compleete"),
-          backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+          backgroundColor: Color(0xff03467d),
         ));
       }
       setState(() {});
@@ -662,7 +656,7 @@ var isConnected=false;
               icon: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
-                size: 30,
+                // size: 30,
               ),
               onPressed: () {
                 Navigator.pop(context);
@@ -670,12 +664,11 @@ var isConnected=false;
         ),
         body: isLoading
             ? Center(
-                        child: SpinKitCircle(
-                            color: Color(
-                                                              0xff014E78),
-                          size: 50,
-                          ),
-                      )
+                child: SpinKitCircle(
+                  color: Color(0xff03467d),
+                  size: 50,
+                ),
+              )
             : FutureBuilder(
                 future: ApiServices.bookHoldEdit(context, widget.id),
                 builder: (ctx, snapshot) {
@@ -697,9 +690,8 @@ var isConnected=false;
 
                       var pannumber = data.panCard.toString();
                       var contact = data.contactNo.toString();
-                      var description = data.description.toString();
                       var payment_status = data.paymentMode.toString();
-
+                      var adarnumber = data.adhar_card_number.toString();
                       String status_value = status == '3'
                           ? 'Hold'
                           : status == '2'
@@ -720,8 +712,13 @@ var isConnected=false;
                               snapshot.data!.result!.multiCustomer!.length == 2
                           ? snapshot.data!.result!.multiCustomer![0].ownerName
                           : "null";
-                      print("vvvvvvvvv");
-                      print(co__owner);
+                      co__aadharnum = snapshot
+                                      .data!.result!.multiCustomer!.length ==
+                                  1 ||
+                              snapshot.data!.result!.multiCustomer!.length == 2
+                          ? snapshot
+                              .data!.result!.multiCustomer![0].adhar_card_number
+                          : "null";
                       co__contact = snapshot
                                       .data!.result!.multiCustomer!.length ==
                                   1 ||
@@ -753,8 +750,6 @@ var isConnected=false;
                               snapshot.data!.result!.multiCustomer!.length == 2
                           ? snapshot.data!.result!.multiCustomer![0].adharCard
                           : "null";
-                      print('zczczc');
-                      print(co__adar);
 
                       co__ceque = snapshot
                                       .data!.result!.multiCustomer!.length ==
@@ -787,8 +782,7 @@ var isConnected=false;
                               ? snapshot
                                   .data!.result!.multiCustomer![1].ownerName
                               : "null";
-                      print("bbbbbbbbbb");
-                      print(co__owner);
+
                       add__contact =
                           snapshot.data!.result!.multiCustomer!.length == 2
                               ? snapshot
@@ -798,6 +792,12 @@ var isConnected=false;
                       add__address =
                           snapshot.data!.result!.multiCustomer!.length == 2
                               ? snapshot.data!.result!.multiCustomer![1].address
+                              : "null";
+
+                      add__Adharnum =
+                          snapshot.data!.result!.multiCustomer!.length == 2
+                              ? snapshot.data!.result!.multiCustomer![1]
+                                  .adhar_card_number
                               : "null";
                       add__pancardd =
                           snapshot.data!.result!.multiCustomer!.length == 2
@@ -810,8 +810,6 @@ var isConnected=false;
                                   .data!.result!.multiCustomer![1].adharCard
                               : "null";
 
-                      print('zxzxzx');
-                      print(add__adar);
                       add__ceque =
                           snapshot.data!.result!.multiCustomer!.length == 2
                               ? snapshot
@@ -855,7 +853,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Associate Name"),
+                                              Text(
+                                                "Associate Name",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -898,7 +900,11 @@ var isConnected=false;
                                             mainAxisAlignment:
                                                 MainAxisAlignment.start,
                                             children: [
-                                              Text("Associate Contact Number"),
+                                              Text(
+                                                "Associate Contact Number",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -941,7 +947,11 @@ var isConnected=false;
                                             mainAxisAlignment:
                                                 MainAxisAlignment.start,
                                             children: [
-                                              Text("Associate Rera Number"),
+                                              Text(
+                                                "Associate Rera Number",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -982,7 +992,16 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Customer Name"),
+                                              Text(
+                                                "Customer Name",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
+                                              Icon(
+                                                Icons.star,
+                                                color: Colors.red,
+                                                size: 10,
+                                              )
                                             ],
                                           ),
                                         ),
@@ -990,22 +1009,24 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: TextFormField(
                                             enabled:
-                                                data!.ownerName.toString() ==
+                                                data.ownerName.toString() ==
                                                         'null'
                                                     ? true
                                                     : false,
                                             controller: ownerName1,
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.person,
-                                                  ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.person,
+                                                ),
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 hintText:
-                                                    data!.ownerName.toString(),
-                                              
-                                                contentPadding:
-                                                    EdgeInsets.symmetric(
-                                                        vertical: 10.0,
-                                                        horizontal: 10.0),
+                                                    data.ownerName.toString(),
+                                                contentPadding: EdgeInsets.symmetric(
+                                                    vertical: 10.0,
+                                                    horizontal: 10.0),
                                                 border: OutlineInputBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(25),
@@ -1050,7 +1071,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Status"),
+                                              Text(
+                                                "Status",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1059,8 +1084,9 @@ var isConnected=false;
                                             child: DropdownButtonFormField(
                                               elevation: 1,
                                               icon: const Icon(
-                                                  Icons.arrow_drop_down,
-                                                    color: Color(0xff03467d),),
+                                                Icons.arrow_drop_down,
+                                                color: Color(0xff03467d),
+                                              ),
                                               decoration: InputDecoration(
                                                   contentPadding:
                                                       const EdgeInsets.symmetric(
@@ -1144,7 +1170,7 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Contact No."),
+                                              Text("Customer Contact Number"),
                                             ],
                                           ),
                                         ),
@@ -1154,16 +1180,92 @@ var isConnected=false;
                                             keyboardType: TextInputType.number,
                                             controller: contact_number,
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.phone,
-                                                  ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.phone,
+                                                ),
                                                 enabled: contact == 'null'
                                                     ? true
                                                     : false,
                                                 hintText: contact == 'null'
-                                                    ? 'Enter Contact'
+                                                    ? 'Enter Contact Number...'
                                                     : '${contact}',
-                                              
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 10.0,
+                                                        horizontal: 10.0),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  borderSide: const BorderSide(
+                                                    color: Color(0xff03467d),
+                                                  ),
+                                                ),
+                                                disabledBorder: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25),
+                                                    borderSide: BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                                focusedErrorBorder: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25),
+                                                    borderSide: BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  borderSide: const BorderSide(
+                                                    color: Color(0xff03467d),
+                                                  ),
+                                                ),
+                                                enabledBorder: const OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.all(Radius.circular(25)),
+                                                    borderSide: BorderSide(color: Color(0xff03467d))),
+                                                focusedBorder: const OutlineInputBorder(
+                                                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                      color: Color(0xff03467d),
+                                                    ))),
+                                          ),
+                                        ),
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                "Customer Address",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            controller: address,
+                                            decoration: InputDecoration(
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.info_outline_rounded,
+                                                ),
+                                                enabled: addres == 'null'
+                                                    ? true
+                                                    : false,
+                                                hintText: addres == 'null'
+                                                    ? 'Enter Address'
+                                                    : '${addres}',
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding: EdgeInsets.symmetric(
                                                     vertical: 10.0,
                                                     horizontal: 10.0),
@@ -1211,69 +1313,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Address"),
-                                            ],
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            controller: address,
-                                            decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.info_outline_rounded,
-                                               ),
-                                                enabled: addres == 'null'
-                                                    ? true
-                                                    : false,
-                                                hintText: addres == 'null'
-                                                    ? 'Enter Address'
-                                                    : '${addres}',
-                                          
-                                                contentPadding: EdgeInsets.symmetric(
-                                                    vertical: 10.0,
-                                                    horizontal: 10.0),
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(25),
-                                                  borderSide: const BorderSide(
-                                                    color: Color(0xff03467d),
-                                                  ),
-                                                ),
-                                                disabledBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(
-                                                        25),
-                                                    borderSide: BorderSide(
-                                                        color:
-                                                            Color(0xff03467d))),
-                                                focusedErrorBorder: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(
-                                                        25),
-                                                    borderSide: BorderSide(
-                                                        color:
-                                                            Color(0xff03467d))),
-                                                errorBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(25),
-                                                  borderSide: const BorderSide(
-                                                    color: Color(0xff03467d),
-                                                  ),
-                                                ),
-                                                enabledBorder: const OutlineInputBorder(
-                                                    borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                    borderSide: BorderSide(color: Color(0xff03467d))),
-                                                focusedBorder: const OutlineInputBorder(
-                                                    borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                    borderSide: BorderSide(
-                                                      color: Color(0xff03467d),
-                                                    ))),
-                                          ),
-                                        ),
-                                        const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Row(
-                                            children: [
-                                              Text("Payment Mode"),
+                                              Text(
+                                                "Payment Mode",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1282,8 +1326,9 @@ var isConnected=false;
                                             child: DropdownButtonFormField(
                                               elevation: 1,
                                               icon: const Icon(
-                                                  Icons.arrow_drop_down,
-                                                  color: Color(0xff03467d),),
+                                                Icons.arrow_drop_down,
+                                                color: Color(0xff03467d),
+                                              ),
                                               decoration: InputDecoration(
                                                   contentPadding:
                                                       const EdgeInsets.symmetric(
@@ -1363,7 +1408,88 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Aadhaar Card"),
+                                              Text(
+                                                "Customer Aadhaar Card Number",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
+                                              Icon(
+                                                Icons.star,
+                                                color: Colors.red,
+                                                size: 10,
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 8, left: 8, right: 8),
+                                          child: TextFormField(
+                                            maxLength: 12,
+                                            enabled: false,
+                                            keyboardType: TextInputType.number,
+                                            controller: Adar,
+                                            decoration: InputDecoration(
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(Icons.numbers),
+                                                hintText: '$adarnumber' == 'null'
+                                                    ? 'Enter Aadhaar Card Number...'
+                                                    : '$adarnumber',
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10.0,
+                                                        horizontal: 10.0),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  borderSide: const BorderSide(
+                                                    color: Color(0xff03467d),
+                                                  ),
+                                                ),
+                                                disabledBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(
+                                                        25),
+                                                    borderSide: const BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                                focusedErrorBorder: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25),
+                                                    borderSide: const BorderSide(
+                                                        color:
+                                                            Color(0xff03467d))),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(25),
+                                                  borderSide: const BorderSide(
+                                                    color: Color(0xff03467d),
+                                                  ),
+                                                ),
+                                                enabledBorder: const OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.all(Radius.circular(25)),
+                                                    borderSide: BorderSide(color: Color(0xff03467d))),
+                                                focusedBorder: const OutlineInputBorder(
+                                                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                    borderSide: BorderSide(
+                                                      color: Color(0xff03467d),
+                                                    ))),
+                                          ),
+                                        ),
+                                        const Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 8, bottom: 8),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                "Customer Aadhaar Card Photo",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1376,9 +1502,11 @@ var isConnected=false;
                                               showImagePicker(context);
                                             },
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.image,
-                                                  ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.image,
+                                                ),
                                                 enabled:
                                                     adhar1 == '' ? true : false,
                                                 hintText: adhar1 == ''
@@ -1386,7 +1514,8 @@ var isConnected=false;
                                                         ? "Choose File"
                                                         : '${adhar}'
                                                     : '${adhar1}',
-                                              
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding:
                                                     const EdgeInsets.symmetric(
                                                         vertical: 10.0,
@@ -1442,13 +1571,13 @@ var isConnected=false;
                                                     InkWell(
                                                       onTap: () {
                                                         download(
-                                                            'https://dmlux.in/project/public/customer/aadhar/${data.adharCard.toString()}');
+                                                          '${UrlHelper.imaeurl}customer/aadhar/${data.adharCard.toString()}');
                                                       },
                                                       child: Container(
                                                         height: 40,
                                                         width: 50,
                                                         child: Image.network(
-                                                            'https://dmlux.in/project/public/customer/aadhar/${data.adharCard.toString()}',
+                                                           '${UrlHelper.imaeurl}customer/aadhar/${data.adharCard.toString()}',
                                                             fit: BoxFit.cover),
                                                       ),
                                                     ),
@@ -1459,7 +1588,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Cheque Photo"),
+                                              Text(
+                                                "Cheque Photo",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1472,9 +1605,11 @@ var isConnected=false;
                                               showImagePicker1(context);
                                             },
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.image,
-                                                   ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.image,
+                                                ),
                                                 enabled: cheque1 == ''
                                                     ? true
                                                     : false,
@@ -1483,7 +1618,8 @@ var isConnected=false;
                                                         ? "Choose File"
                                                         : '${cheque}'
                                                     : '${cheque1}',
-                                              
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding: EdgeInsets.symmetric(
                                                     vertical: 10.0,
                                                     horizontal: 10.0),
@@ -1539,13 +1675,13 @@ var isConnected=false;
                                                     InkWell(
                                                       onTap: () {
                                                         download(
-                                                            'https://dmlux.in/project/public/customer/cheque/${data.chequePhoto.toString()}');
+                                                           '${UrlHelper.imaeurl}customer/cheque/${data.chequePhoto.toString()}');
                                                       },
                                                       child: Container(
                                                         height: 40,
                                                         width: 50,
                                                         child: Image.network(
-                                                            'https://dmlux.in/project/public/customer/cheque/${data.chequePhoto.toString()}',
+                                                           '${UrlHelper.imaeurl}customer/cheque/${data.chequePhoto.toString()}',
                                                             fit: BoxFit.cover),
                                                       ),
                                                     ),
@@ -1556,7 +1692,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Attachement"),
+                                              Text(
+                                                "Attachement",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1569,9 +1709,11 @@ var isConnected=false;
                                               showImagePicker2(context);
                                             },
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.attachment,
-                                                    ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.attachment,
+                                                ),
                                                 enabled: attachement == ''
                                                     ? true
                                                     : false,
@@ -1580,7 +1722,8 @@ var isConnected=false;
                                                         ? "Choose File"
                                                         : '${pdfFile}'
                                                     : '${attachement}',
-                                             
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding: EdgeInsets.symmetric(
                                                     vertical: 10.0,
                                                     horizontal: 10.0),
@@ -1615,7 +1758,8 @@ var isConnected=false;
                                                 enabledBorder: const OutlineInputBorder(
                                                     borderRadius: BorderRadius.all(
                                                         Radius.circular(25)),
-                                                    borderSide: BorderSide(color: Color(0xff03467d))),
+                                                    borderSide: BorderSide(
+                                                        color: Color(0xff03467d))),
                                                 focusedBorder: const OutlineInputBorder(
                                                     borderRadius: BorderRadius.all(Radius.circular(25)),
                                                     borderSide: BorderSide(
@@ -1635,13 +1779,13 @@ var isConnected=false;
                                                     InkWell(
                                                       onTap: () {
                                                         download(
-                                                            'https://dmlux.in/project/public/customer/attach/${data.attachment.toString()}');
+                                                           '${UrlHelper.imaeurl}customer/attach/${data.attachment.toString()}');
                                                       },
                                                       child: Container(
                                                         height: 40,
                                                         width: 50,
                                                         child: Image.network(
-                                                            'https://dmlux.in/project/public/customer/attach/${data.attachment.toString()}',
+                                                           '${UrlHelper.imaeurl}customer/attach/${data.attachment.toString()}',
                                                             fit: BoxFit.cover),
                                                       ),
                                                     ),
@@ -1652,7 +1796,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Pan Card Number"),
+                                              Text(
+                                                "Customer PAN Card Number",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1661,16 +1809,19 @@ var isConnected=false;
                                           child: TextFormField(
                                             controller: pan_number,
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.numbers,
-                                                   ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.numbers,
+                                                ),
                                                 enabled: pannumber == 'null'
                                                     ? true
                                                     : false,
                                                 hintText: pannumber == 'null'
                                                     ? 'enter Number'
                                                     : '${pannumber}',
-                                               
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding: EdgeInsets.symmetric(
                                                     vertical: 10.0,
                                                     horizontal: 10.0),
@@ -1718,7 +1869,11 @@ var isConnected=false;
                                           padding: EdgeInsets.all(8.0),
                                           child: Row(
                                             children: [
-                                              Text("Pan Card Photo"),
+                                              Text(
+                                                "Customer PAN Card Photoo",
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -1732,9 +1887,11 @@ var isConnected=false;
                                               setState(() {});
                                             },
                                             decoration: InputDecoration(
-                                                  prefixIconColor: Color(0xff03467d),
-                                                prefixIcon: Icon(Icons.image,
-                                                  ),
+                                                prefixIconColor:
+                                                    Color(0xff03467d),
+                                                prefixIcon: Icon(
+                                                  Icons.image,
+                                                ),
                                                 enabled: pancardd == ''
                                                     ? true
                                                     : false,
@@ -1743,7 +1900,8 @@ var isConnected=false;
                                                         ? "Choose File"
                                                         : '${panCard}'
                                                     : '${pancardd}',
-                                              
+                                                hintStyle: TextStyle(
+                                                    color: Colors.black),
                                                 contentPadding: EdgeInsets.symmetric(
                                                     vertical: 10.0,
                                                     horizontal: 10.0),
@@ -1799,13 +1957,13 @@ var isConnected=false;
                                                     InkWell(
                                                       onTap: () {
                                                         download(
-                                                            'https://dmlux.in/project/public/customer/pancard/${data.panCardImage.toString()}');
+                                                            '${UrlHelper.imaeurl}customer/pancard/${data.panCardImage.toString()}');
                                                       },
                                                       child: Container(
                                                         height: 40,
                                                         width: 50,
                                                         child: Image.network(
-                                                            'https://dmlux.in/project/public/customer/pancard/${data.panCardImage.toString()}',
+                                                            '${UrlHelper.imaeurl}customer/pancard/${data.panCardImage.toString()}',
                                                             fit: BoxFit.cover),
                                                       ),
                                                     ),
@@ -1850,89 +2008,172 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Customer Name"),
+                                                        Text(
+                                                          "Customer Name",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                        Icon(
+                                                          Icons.star,
+                                                          color: Colors.red,
+                                                          size: 10,
+                                                        )
                                                       ],
                                                     ),
                                                   ),
-                                                  Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: TextFormField(
-                                                      controller: co_custo_name,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              enabled:
-                                                                  '$co__owner' ==
-                                                                          'null'
-                                                                      ? true
-                                                                      : false,
-                                                              hintText: '$co__owner' ==
-                                                                      'null'
-                                                                  ? 'Enter Customer Name'
-                                                                  : '$co__owner',
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
+                                                  '$co__owner' == 'null'
+                                                      ? Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  8.0),
+                                                          child: TextFormField(
+                                                            controller:
+                                                                co_custo_name,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    enabled: '$co__owner' ==
+                                                                            'null'
+                                                                        ? true
+                                                                        : false,
+                                                                    hintText: '$co__owner' ==
+                                                                            'null'
+                                                                        ? 'Enter Customer Name'
+                                                                        : '$co__owner',
+                                                                    hintStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .black),
+                                                                    contentPadding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               25),
                                                                       borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
                                                                             25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                      validator: (value) {
-                                                        if (value!.isEmpty) {
-                                                          return "please enter customer_name";
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
+                                                                        borderSide: BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                                25),
+                                                                        borderSide:
+                                                                            BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                            validator: (value) {
+                                                              if (value!
+                                                                  .isEmpty) {
+                                                                return "please enter customer_name";
+                                                              }
+                                                            },
+                                                          ),
+                                                        )
+                                                      : Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  8.0),
+                                                          child: TextFormField(
+                                                            controller:
+                                                                co_custo_name,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    enabled: '$co__owner' ==
+                                                                            'null'
+                                                                        ? true
+                                                                        : false,
+                                                                    hintText: '$co__owner' ==
+                                                                            'null'
+                                                                        ? 'Enter Customer Name'
+                                                                        : '$co__owner',
+                                                                    hintStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .black),
+                                                                    contentPadding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                                25),
+                                                                        borderSide:
+                                                                            BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                          ),
+                                                        ),
                                                   const Padding(
                                                     padding:
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Contact No."),
+                                                        Text(
+                                                          "Customer Contact Number",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -1947,303 +2188,16 @@ var isConnected=false;
                                                       decoration:
                                                           InputDecoration(
                                                               enabled:
-                                                                  "$co__contact" ==
-                                                                          'null'
+                                                                  "$co__contact" == 'null'
                                                                       ? true
                                                                       : false,
                                                               hintText: "$co__contact" ==
                                                                       'null'
                                                                   ? "Enter Contact No"
                                                                   : "$co__contact",
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                      validator: (value) {
-                                                        if (value!.isEmpty) {
-                                                          return "please enter contact number";
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Address"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      controller: co_address,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              enabled:
-                                                                  "$co__address" ==
-                                                                          'null'
-                                                                      ? true
-                                                                      : false,
-                                                              hintText: "$co__address" ==
-                                                                      'null'
-                                                                  ? "Enter Address"
-                                                                  : "$co__address",
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                    ),
-                                                  ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Aadhaar Card"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      readOnly: true,
-                                                      keyboardType:
-                                                          TextInputType.none,
-                                                      onTap: () {
-                                                        co_ImagePicker(context);
-                                                      },
-                                                      decoration:
-                                                          InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
-                                                              prefixIcon: Icon(
-                                                                  Icons.image),
-                                                              enabled: '$co__adar' == "" || '$co__adar' == "null"
-                                                                  ? true
-                                                                  : false,
-                                                              hintText: '$co__adar' == "" ||
-                                                                      '$co__adar' ==
-                                                                          "null"
-                                                                  ? co_image ==
-                                                                          null
-                                                                      ? "Choose File"
-                                                                      : '${co_adhar}'
-                                                                  : '$co__adar',
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(25),
-                                                                      borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                    ),
-                                                  ),
-                                                  '$co__adar' == "" ||
-                                                          '$co__adar' == "null"
-                                                      ? SizedBox()
-                                                      : Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  left: 8),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              InkWell(
-                                                                onTap: () {
-                                                                  download(
-                                                                      'https://dmlux.in/project/public/customer/aadhar/${co__adar.toString()}');
-                                                                },
-                                                                child:
-                                                                    Container(
-                                                                  height: 40,
-                                                                  width: 50,
-                                                                  child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/aadhar/${co__adar.toString()}',
-                                                                      fit: BoxFit
-                                                                          .cover),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Cheque Photo"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      readOnly: true,
-                                                      keyboardType:
-                                                          TextInputType.none,
-                                                      onTap: () {
-                                                        co_ImagePicker1(
-                                                            context);
-                                                      },
-                                                      decoration:
-                                                          InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
-                                                              prefixIcon: Icon(
-                                                                  Icons.image),
-                                                              enabled: "$co__ceque" == "" || "$co__ceque" == "null"
-                                                                  ? true
-                                                                  : false,
-                                                              hintText: "$co__ceque" == "" ||
-                                                                      "$co__ceque" ==
-                                                                          "null"
-                                                                  ? co_image1 ==
-                                                                          null
-                                                                      ? "Choose File"
-                                                                      : '${co_cheque}'
-                                                                  : "$co__ceque",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   EdgeInsets.symmetric(
                                                                       vertical:
@@ -2271,8 +2225,499 @@ var isConnected=false;
                                                                           0xff03467d))),
                                                               focusedErrorBorder: OutlineInputBorder(
                                                                   borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide:
+                                                                      BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Address",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      controller: co_address,
+                                                      decoration:
+                                                          InputDecoration(
+                                                              enabled:
+                                                                  "$co__address" == 'null'
+                                                                      ? true
+                                                                      : false,
+                                                              hintText: "$co__address" ==
+                                                                      'null'
+                                                                  ? "Enter Address"
+                                                                  : "$co__address",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide: BorderSide(
+                                                                      color: Color(
+                                                                          0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide:
+                                                                      BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Aadhaar Card Number",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                        Icon(Icons.star,
+                                                            color: Colors.red,
+                                                            size: 10)
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  '$co__aadharnum' == 'null'
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            maxLength: 12,
+                                                            enabled:
+                                                                '$co__aadharnum' ==
+                                                                        'null'
+                                                                    ? true
+                                                                    : false,
+                                                            controller: co_Adar,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    counterText:
+                                                                        "",
+                                                                    prefixIconColor: Color(
+                                                                        0xff03467d),
+                                                                    prefixIcon:
+                                                                        Icon(Icons
+                                                                            .numbers),
+                                                                    hintText: '$co__aadharnum' ==
+                                                                            'null'
+                                                                        ? 'Enter Aadhaar Card Number...'
+                                                                        : '$co__aadharnum',
+                                                                    hintStyle: TextStyle(
+                                                                        color:
+                                                                            Colors
+                                                                                .black),
+                                                                    contentPadding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: const BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(25),
+                                                                        borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                            validator: (value) {
+                                                              if (value!
+                                                                  .isEmpty) {
+                                                                return "The Adhar Card Number field is required";
+                                                              } else if (value
+                                                                          .length <
+                                                                      12 ||
+                                                                  value.length >
+                                                                      12) {
+                                                                return 'Aadhaar Number must be of 12 digit';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        )
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            maxLength: 12,
+                                                            enabled:
+                                                                '$co__aadharnum' ==
+                                                                        'null'
+                                                                    ? true
+                                                                    : false,
+                                                            controller: co_Adar,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    counterText:
+                                                                        "",
+                                                                    prefixIconColor: Color(
+                                                                        0xff03467d),
+                                                                    prefixIcon:
+                                                                        Icon(Icons
+                                                                            .numbers),
+                                                                    hintText: '$co__aadharnum' ==
+                                                                            'null'
+                                                                        ? 'Adhar Card Number...'
+                                                                        : '$co__aadharnum',
+                                                                    hintStyle: TextStyle(
+                                                                        color:
+                                                                            Colors
+                                                                                .black),
+                                                                    contentPadding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: const BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(25),
+                                                                        borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                          ),
+                                                        ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Aadhaar Card Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      readOnly: true,
+                                                      keyboardType:
+                                                          TextInputType.none,
+                                                      onTap: () {
+                                                        co_ImagePicker(context);
+                                                      },
+                                                      decoration:
+                                                          InputDecoration(
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
+                                                              prefixIcon: Icon(
+                                                                  Icons.image),
+                                                              enabled: '$co__adar' ==
+                                                                          "" ||
+                                                                      '$co__adar' ==
+                                                                          "null"
+                                                                  ? true
+                                                                  : false,
+                                                              hintText: '$co__adar' ==
+                                                                          "" ||
+                                                                      '$co__adar' ==
+                                                                          "null"
+                                                                  ? co_image ==
+                                                                          null
+                                                                      ? "Choose File"
+                                                                      : '${co_adhar}'
+                                                                  : '$co__adar',
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
                                                                       BorderRadius.circular(25),
                                                                   borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  '$co__adar' == "" ||
+                                                          '$co__adar' == "null"
+                                                      ? SizedBox()
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 8),
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              InkWell(
+                                                                onTap: () {
+                                                                  download(
+                                                                     '${UrlHelper.imaeurl}customer/aadhar/${co__adar.toString()}');
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  height: 40,
+                                                                  width: 50,
+                                                                  child: Image.network(
+                                                                     '${UrlHelper.imaeurl}customer/aadhar/${co__adar.toString()}',
+                                                                      fit: BoxFit
+                                                                          .cover),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Cheque Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      readOnly: true,
+                                                      keyboardType:
+                                                          TextInputType.none,
+                                                      onTap: () {
+                                                        co_ImagePicker1(
+                                                            context);
+                                                      },
+                                                      decoration:
+                                                          InputDecoration(
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
+                                                              prefixIcon: Icon(
+                                                                  Icons.image),
+                                                              enabled: "$co__ceque" ==
+                                                                          "" ||
+                                                                      "$co__ceque" ==
+                                                                          "null"
+                                                                  ? true
+                                                                  : false,
+                                                              hintText: "$co__ceque" ==
+                                                                          "" ||
+                                                                      "$co__ceque" ==
+                                                                          "null"
+                                                                  ? co_image1 ==
+                                                                          null
+                                                                      ? "Choose File"
+                                                                      : '${co_cheque}'
+                                                                  : "$co__ceque",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(25),
+                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -2299,7 +2744,7 @@ var isConnected=false;
                                                       : Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                      .only(
+                                                                  .only(
                                                                   left: 8),
                                                           child: Row(
                                                             mainAxisAlignment:
@@ -2309,14 +2754,14 @@ var isConnected=false;
                                                               InkWell(
                                                                 onTap: () {
                                                                   download(
-                                                                      'https://dmlux.in/project/public/customer/cheque/${co__ceque.toString()}');
+                                                                     '${UrlHelper.imaeurl}customer/cheque/${co__ceque.toString()}');
                                                                 },
                                                                 child:
                                                                     Container(
                                                                   height: 40,
                                                                   width: 50,
                                                                   child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/cheque/${co__ceque.toString()}',
+                                                                    '${UrlHelper.imaeurl}customer/cheque/${co__ceque.toString()}',
                                                                       fit: BoxFit
                                                                           .cover),
                                                                 ),
@@ -2329,7 +2774,12 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Attachement"),
+                                                        Text(
+                                                          "Attachement",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -2347,13 +2797,19 @@ var isConnected=false;
                                                       },
                                                       decoration:
                                                           InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
                                                               prefixIcon: Icon(Icons
                                                                   .attachment),
-                                                              enabled: "$co__attacment" == "" || "$co__attacment" == "null"
+                                                              enabled: "$co__attacment" ==
+                                                                          "" ||
+                                                                      "$co__attacment" ==
+                                                                          "null"
                                                                   ? true
                                                                   : false,
-                                                              hintText: "$co__attacment" == "" ||
+                                                              hintText: "$co__attacment" ==
+                                                                          "" ||
                                                                       "$co__attacment" ==
                                                                           "null"
                                                                   ? co_image2 ==
@@ -2361,6 +2817,9 @@ var isConnected=false;
                                                                       ? "Choose File"
                                                                       : '${co_pdfFile}'
                                                                   : "$co__attacment",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   EdgeInsets.symmetric(
                                                                       vertical:
@@ -2379,18 +2838,12 @@ var isConnected=false;
                                                                       0xff03467d),
                                                                 ),
                                                               ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
+                                                              disabledBorder:
                                                                   OutlineInputBorder(
                                                                       borderRadius:
                                                                           BorderRadius.circular(25),
                                                                       borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -2418,7 +2871,7 @@ var isConnected=false;
                                                       : Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                      .only(
+                                                                  .only(
                                                                   left: 8),
                                                           child: Row(
                                                             mainAxisAlignment:
@@ -2428,14 +2881,14 @@ var isConnected=false;
                                                               InkWell(
                                                                 onTap: () {
                                                                   download(
-                                                                      'https://dmlux.in/project/public/customer/attach/${co__attacment.toString()}');
+                                                                     '${UrlHelper.imaeurl}customer/attach/${co__attacment.toString()}');
                                                                 },
                                                                 child:
                                                                     Container(
                                                                   height: 40,
                                                                   width: 50,
                                                                   child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/attach/${co__attacment.toString()}',
+                                                                     '${UrlHelper.imaeurl}customer/attach/${co__attacment.toString()}',
                                                                       fit: BoxFit
                                                                           .cover),
                                                                 ),
@@ -2448,7 +2901,8 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Pan Card Number"),
+                                                        Text(
+                                                            "Customer PAN Card Number"),
                                                       ],
                                                     ),
                                                   ),
@@ -2461,14 +2915,16 @@ var isConnected=false;
                                                       decoration:
                                                           InputDecoration(
                                                               enabled:
-                                                                  "$co__pancardd" ==
-                                                                          'null'
+                                                                  "$co__pancardd" == 'null'
                                                                       ? true
                                                                       : false,
                                                               hintText: "$co__pancardd" ==
                                                                       'null'
                                                                   ? "Enter Address"
                                                                   : "$co__pancardd",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   EdgeInsets.symmetric(
                                                                       vertical:
@@ -2494,13 +2950,12 @@ var isConnected=false;
                                                                   borderSide: BorderSide(
                                                                       color: Color(
                                                                           0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide:
+                                                                      BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -2526,7 +2981,12 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Pan Card Photo"),
+                                                        Text(
+                                                          "Pan Card Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -2544,13 +3004,18 @@ var isConnected=false;
                                                       },
                                                       decoration:
                                                           InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
+                                                              prefixIconColor: Color(
+                                                                  0xff03467d),
                                                               prefixIcon: Icon(
                                                                   Icons.image),
-                                                              enabled: "$co__pancard" == "" || "$co__pancard" == "null"
+                                                              enabled: "$co__pancard" ==
+                                                                          "" ||
+                                                                      "$co__pancard" ==
+                                                                          "null"
                                                                   ? true
                                                                   : false,
-                                                              hintText: "$co__pancard" == "" ||
+                                                              hintText: "$co__pancard" ==
+                                                                          "" ||
                                                                       "$co__pancard" ==
                                                                           "null"
                                                                   ? co_image3 ==
@@ -2558,6 +3023,9 @@ var isConnected=false;
                                                                       ? "Choose File"
                                                                       : '${co_panCard}'
                                                                   : "$co__pancard",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   const EdgeInsets.symmetric(
                                                                       vertical:
@@ -2578,15 +3046,9 @@ var isConnected=false;
                                                               ),
                                                               disabledBorder: OutlineInputBorder(
                                                                   borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: const BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder: OutlineInputBorder(
-                                                                  borderRadius:
                                                                       BorderRadius.circular(25),
-                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                  borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -2614,7 +3076,7 @@ var isConnected=false;
                                                       : Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                      .only(
+                                                                  .only(
                                                                   left: 8),
                                                           child: Row(
                                                             mainAxisAlignment:
@@ -2624,14 +3086,14 @@ var isConnected=false;
                                                               InkWell(
                                                                 onTap: () {
                                                                   download(
-                                                                      'https://dmlux.in/project/public/customer/pancard/${co__pancard.toString()}');
+                                                                     '${UrlHelper.imaeurl}customer/pancard/${co__pancard.toString()}');
                                                                 },
                                                                 child:
                                                                     Container(
                                                                   height: 40,
                                                                   width: 50,
                                                                   child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/pancard/${co__pancard.toString()}',
+                                                                    '${UrlHelper.imaeurl}customer/pancard/${co__pancard.toString()}',
                                                                       fit: BoxFit
                                                                           .cover),
                                                                 ),
@@ -2665,7 +3127,7 @@ var isConnected=false;
                                                                 BorderRadius
                                                                     .circular(
                                                                         20),
-                                                            color: Colors.blue,
+                                                            color: Colors.red,
                                                           ),
                                                           height: 35,
                                                           width: 80,
@@ -2714,91 +3176,170 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Customer Name"),
+                                                        Text(
+                                                          "Customer Name",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                        Icon(Icons.star,
+                                                            color: Colors.red,
+                                                            size: 10)
                                                       ],
                                                     ),
                                                   ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      controller:
-                                                          add_custo_name,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              enabled:
-                                                                  '$add__owner' ==
-                                                                          'null'
-                                                                      ? true
-                                                                      : false,
-                                                              hintText: '$add__owner' ==
-                                                                      'null'
-                                                                  ? 'Enter Customer Name'
-                                                                  : '$add__owner',
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
+                                                  '$add__owner' == 'null'
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            controller:
+                                                                add_custo_name,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    enabled: '$add__owner' ==
+                                                                            'null'
+                                                                        ? true
+                                                                        : false,
+                                                                    hintText: '$add__owner' ==
+                                                                            'null'
+                                                                        ? 'Enter Customer Name'
+                                                                        : '$add__owner',
+                                                                    hintStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .black),
+                                                                    contentPadding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               25),
                                                                       borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
                                                                             25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                      validator: (value) {
-                                                        if (value!.isEmpty) {
-                                                          return "please enter customer name";
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
+                                                                        borderSide: BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                                25),
+                                                                        borderSide:
+                                                                            BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                            validator: (value) {
+                                                              if (value!
+                                                                  .isEmpty) {
+                                                                return "please enter customer name";
+                                                              }
+                                                            },
+                                                          ),
+                                                        )
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            controller:
+                                                                add_custo_name,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    enabled: '$add__owner' ==
+                                                                            'null'
+                                                                        ? true
+                                                                        : false,
+                                                                    hintText: '$add__owner' ==
+                                                                            'null'
+                                                                        ? 'Enter Customer Name'
+                                                                        : '$add__owner',
+                                                                    hintStyle: TextStyle(
+                                                                        color: Colors
+                                                                            .black),
+                                                                    contentPadding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                                25),
+                                                                        borderSide:
+                                                                            BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                          ),
+                                                        ),
                                                   const Padding(
                                                     padding:
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Contact No."),
+                                                        Text(
+                                                          "Customer Contact Number",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -2821,412 +3362,11 @@ var isConnected=false;
                                                                       'null'
                                                                   ? "Enter Contact No"
                                                                   : "$add__contact",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   const EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                      validator: (value) {
-                                                        if (value!.isEmpty) {
-                                                          return "please enter contact number";
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Address"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      controller: add_address,
-                                                      decoration:
-                                                          InputDecoration(
-                                                              enabled:
-                                                                  "$add__address" ==
-                                                                          'null'
-                                                                      ? true
-                                                                      : false,
-                                                              hintText: "$add__address" ==
-                                                                      'null'
-                                                                  ? "Enter Address"
-                                                                  : "$add__address",
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder:
-                                                                  OutlineInputBorder(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                    ),
-                                                  ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Aadhaar Card"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      readOnly: true,
-                                                      keyboardType:
-                                                          TextInputType.none,
-                                                      onTap: () {
-                                                        Picker(context);
-                                                      },
-                                                      decoration:
-                                                          InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
-                                                              prefixIcon: Icon(
-                                                                  Icons.image),
-                                                              enabled: '$add__adar' == "" || '$add__adar' == "null"
-                                                                  ? true
-                                                                  : false,
-                                                              hintText: '$add__adar' == "" ||
-                                                                      '$add__adar' ==
-                                                                          "null"
-                                                                  ? add_image ==
-                                                                          null
-                                                                      ? "Choose File"
-                                                                      : '${add_adhar}'
-                                                                  : '$add__adar',
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(25),
-                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                    ),
-                                                  ),
-                                                  '$add__adar' == "" ||
-                                                          '$add__adar' == "null"
-                                                      ? SizedBox()
-                                                      : Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  left: 8),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              InkWell(
-                                                                onTap: () {
-                                                                  download(
-                                                                      'https://dmlux.in/project/public/customer/aadhar/${add__adar.toString()}');
-                                                                },
-                                                                child:
-                                                                    Container(
-                                                                  height: 40,
-                                                                  width: 50,
-                                                                  child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/aadhar/${add__adar.toString()}',
-                                                                      fit: BoxFit
-                                                                          .cover),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Cheque Photo"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      readOnly: true,
-                                                      keyboardType:
-                                                          TextInputType.none,
-                                                      onTap: () {
-                                                        Picker1(context);
-                                                      },
-                                                      decoration:
-                                                          InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
-                                                              prefixIcon: Icon(
-                                                                  Icons.image),
-                                                              enabled: "$add__ceque" == "" || "$add__ceque" == "null"
-                                                                  ? true
-                                                                  : false,
-                                                              hintText: "$add__ceque" == "" ||
-                                                                      "$add__ceque" ==
-                                                                          "null"
-                                                                  ? add_image1 ==
-                                                                          null
-                                                                      ? "Choose File"
-                                                                      : '${add_cheque}'
-                                                                  : "$add__ceque",
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10.0,
-                                                                      horizontal:
-                                                                          10.0),
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              disabledBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder: OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(25),
-                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              errorBorder: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            25),
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xff03467d),
-                                                                ),
-                                                              ),
-                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
-                                                              focusedBorder: const OutlineInputBorder(
-                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                                                                  borderSide: BorderSide(
-                                                                    color: Color(
-                                                                        0xff03467d),
-                                                                  ))),
-                                                    ),
-                                                  ),
-                                                  "$add__ceque" == "" ||
-                                                          "$add__ceque" ==
-                                                              "null"
-                                                      ? SizedBox()
-                                                      : Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  left: 8),
-                                                          child: Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              InkWell(
-                                                                onTap: () {
-                                                                  download(
-                                                                      'https://dmlux.in/project/public/customer/cheque/${add__ceque.toString()}');
-                                                                },
-                                                                child:
-                                                                    Container(
-                                                                  height: 40,
-                                                                  width: 50,
-                                                                  child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/cheque/${add__ceque.toString()}',
-                                                                      fit: BoxFit
-                                                                          .cover),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Text("Attachement"),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: TextFormField(
-                                                      readOnly: true,
-                                                      keyboardType:
-                                                          TextInputType.none,
-                                                      onTap: () {
-                                                        Picker2(context);
-                                                      },
-                                                      decoration:
-                                                          InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
-                                                              prefixIcon: Icon(Icons
-                                                                  .attachment),
-                                                              enabled: "$add__attacment" == "" || "$add__attacment" == "null"
-                                                                  ? true
-                                                                  : false,
-                                                              hintText: "$add__attacment" == "" ||
-                                                                      "$add__attacment" ==
-                                                                          "null"
-                                                                  ? add_image2 ==
-                                                                          null
-                                                                      ? "Choose File"
-                                                                      : '${add_pdfFile}'
-                                                                  : "$add__attacment",
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
                                                                       vertical:
                                                                           10.0,
                                                                       horizontal:
@@ -3275,14 +3415,379 @@ var isConnected=false;
                                                                   ))),
                                                     ),
                                                   ),
-                                                  "$add__attacment" == "" ||
-                                                          "$add__attacment" ==
-                                                              "null"
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Address",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      controller: add_address,
+                                                      decoration:
+                                                          InputDecoration(
+                                                              enabled:
+                                                                  "$add__address" == 'null'
+                                                                      ? true
+                                                                      : false,
+                                                              hintText: "$add__address" ==
+                                                                      'null'
+                                                                  ? "Enter Address"
+                                                                  : "$add__address",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide: BorderSide(
+                                                                      color: Color(
+                                                                          0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                          25),
+                                                                  borderSide:
+                                                                      BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Aadhaar Card Number",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                        Icon(Icons.star,
+                                                            color: Colors.red,
+                                                            size: 10)
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  "$add__Adharnum" == 'null'
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            maxLength: 12,
+                                                            enabled:
+                                                                "$add__Adharnum" ==
+                                                                        'null'
+                                                                    ? true
+                                                                    : false,
+                                                            controller:
+                                                                add_Adar,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    counterText:
+                                                                        "",
+                                                                    prefixIconColor: Color(
+                                                                        0xff03467d),
+                                                                    prefixIcon:
+                                                                        Icon(Icons
+                                                                            .numbers),
+                                                                    hintText: "$add__Adharnum" ==
+                                                                            'null'
+                                                                        ? "Enter Aadhaar Card Number"
+                                                                        : "$add__Adharnum",
+                                                                    hintStyle: TextStyle(
+                                                                        color:
+                                                                            Colors
+                                                                                .black),
+                                                                    contentPadding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: const BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(25),
+                                                                        borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                            validator: (value) {
+                                                              if (value!
+                                                                  .isEmpty) {
+                                                                return "The Adhar Card Number field is required";
+                                                              } else if (value
+                                                                          .length <
+                                                                      12 ||
+                                                                  value.length >
+                                                                      12) {
+                                                                return 'Aadhaar Number must be of 12 digit';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        )
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: TextFormField(
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            maxLength: 12,
+                                                            enabled:
+                                                                "$add__Adharnum" ==
+                                                                        'null'
+                                                                    ? true
+                                                                    : false,
+                                                            controller:
+                                                                add_Adar,
+                                                            decoration:
+                                                                InputDecoration(
+                                                                    counterText:
+                                                                        "",
+                                                                    prefixIconColor: Color(
+                                                                        0xff03467d),
+                                                                    prefixIcon:
+                                                                        Icon(Icons
+                                                                            .numbers),
+                                                                    hintText: "$add__Adharnum" ==
+                                                                            'null'
+                                                                        ? "Enter Aadhaar Card Number"
+                                                                        : "$add__Adharnum",
+                                                                    hintStyle: TextStyle(
+                                                                        color:
+                                                                            Colors
+                                                                                .black),
+                                                                    contentPadding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            10.0,
+                                                                        horizontal:
+                                                                            10.0),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    disabledBorder: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(
+                                                                            25),
+                                                                        borderSide: const BorderSide(
+                                                                            color: Color(
+                                                                                0xff03467d))),
+                                                                    focusedErrorBorder: OutlineInputBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(25),
+                                                                        borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                                    errorBorder: OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              25),
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                        color: Color(
+                                                                            0xff03467d),
+                                                                      ),
+                                                                    ),
+                                                                    enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                                    focusedBorder: const OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                              Color(0xff03467d),
+                                                                        ))),
+                                                          ),
+                                                        ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Customer Aadhaar Card Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      readOnly: true,
+                                                      keyboardType:
+                                                          TextInputType.none,
+                                                      onTap: () {
+                                                        Picker(context);
+                                                      },
+                                                      decoration:
+                                                          InputDecoration(
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
+                                                              prefixIcon: Icon(
+                                                                  Icons.image),
+                                                              enabled: '$add__adar' ==
+                                                                          "" ||
+                                                                      '$add__adar' ==
+                                                                          "null"
+                                                                  ? true
+                                                                  : false,
+                                                              hintText: '$add__adar' ==
+                                                                          "" ||
+                                                                      '$add__adar' ==
+                                                                          "null"
+                                                                  ? add_image ==
+                                                                          null
+                                                                      ? "Choose File"
+                                                                      : '${add_adhar}'
+                                                                  : '$add__adar',
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(25),
+                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  '$add__adar' == "" ||
+                                                          '$add__adar' == "null"
                                                       ? SizedBox()
                                                       : Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                      .only(
+                                                                  .only(
                                                                   left: 8),
                                                           child: Row(
                                                             mainAxisAlignment:
@@ -3292,14 +3797,14 @@ var isConnected=false;
                                                               InkWell(
                                                                 onTap: () {
                                                                   download(
-                                                                      'https://dmlux.in/project/public/customer/attach/${add__attacment.toString()}');
+                                                                     '${UrlHelper.imaeurl}customer/aadhar/${add__adar.toString()}');
                                                                 },
                                                                 child:
                                                                     Container(
                                                                   height: 40,
                                                                   width: 50,
                                                                   child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/attach/${add__attacment.toString()}',
+                                                                    '${UrlHelper.imaeurl}customer/aadhar/${add__adar.toString()}',
                                                                       fit: BoxFit
                                                                           .cover),
                                                                 ),
@@ -3312,7 +3817,259 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Pan Card Number"),
+                                                        Text(
+                                                          "Cheque Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      readOnly: true,
+                                                      keyboardType:
+                                                          TextInputType.none,
+                                                      onTap: () {
+                                                        Picker1(context);
+                                                      },
+                                                      decoration:
+                                                          InputDecoration(
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
+                                                              prefixIcon: Icon(
+                                                                  Icons.image),
+                                                              enabled: "$add__ceque" ==
+                                                                          "" ||
+                                                                      "$add__ceque" ==
+                                                                          "null"
+                                                                  ? true
+                                                                  : false,
+                                                              hintText: "$add__ceque" ==
+                                                                          "" ||
+                                                                      "$add__ceque" ==
+                                                                          "null"
+                                                                  ? add_image1 ==
+                                                                          null
+                                                                      ? "Choose File"
+                                                                      : '${add_cheque}'
+                                                                  : "$add__ceque",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder: OutlineInputBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(25),
+                                                                  borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  "$add__ceque" == "" ||
+                                                          "$add__ceque" ==
+                                                              "null"
+                                                      ? SizedBox()
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 8),
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              InkWell(
+                                                                onTap: () {
+                                                                  download(
+                                                                     '${UrlHelper.imaeurl}customer/cheque/${add__ceque.toString()}');
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  height: 40,
+                                                                  width: 50,
+                                                                  child: Image.network(
+                                                                   '${UrlHelper.imaeurl}customer/cheque/${add__ceque.toString()}',
+                                                                      fit: BoxFit
+                                                                          .cover),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                          "Attachement",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: TextFormField(
+                                                      readOnly: true,
+                                                      keyboardType:
+                                                          TextInputType.none,
+                                                      onTap: () {
+                                                        Picker2(context);
+                                                      },
+                                                      decoration:
+                                                          InputDecoration(
+                                                              prefixIconColor:
+                                                                  Color(
+                                                                      0xff03467d),
+                                                              prefixIcon: Icon(Icons
+                                                                  .attachment),
+                                                              enabled: "$add__attacment" ==
+                                                                          "" ||
+                                                                      "$add__attacment" ==
+                                                                          "null"
+                                                                  ? true
+                                                                  : false,
+                                                              hintText: "$add__attacment" ==
+                                                                          "" ||
+                                                                      "$add__attacment" ==
+                                                                          "null"
+                                                                  ? add_image2 ==
+                                                                          null
+                                                                      ? "Choose File"
+                                                                      : '${add_pdfFile}'
+                                                                  : "$add__attacment",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          10.0,
+                                                                      horizontal:
+                                                                          10.0),
+                                                              border:
+                                                                  OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              disabledBorder:
+                                                                  OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(25),
+                                                                      borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              errorBorder: OutlineInputBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            25),
+                                                                borderSide:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xff03467d),
+                                                                ),
+                                                              ),
+                                                              enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)), borderSide: BorderSide(color: Color(0xff03467d))),
+                                                              focusedBorder: const OutlineInputBorder(
+                                                                  borderRadius: BorderRadius.all(Radius.circular(25)),
+                                                                  borderSide: BorderSide(
+                                                                    color: Color(
+                                                                        0xff03467d),
+                                                                  ))),
+                                                    ),
+                                                  ),
+                                                  "$add__attacment" == "" ||
+                                                          "$add__attacment" ==
+                                                              "null"
+                                                      ? SizedBox()
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 8),
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              InkWell(
+                                                                onTap: () {
+                                                                  download(
+                                                                     '${UrlHelper.imaeurl}customer/attach/${add__attacment.toString()}');
+                                                                },
+                                                                child:
+                                                                    Container(
+                                                                  height: 40,
+                                                                  width: 50,
+                                                                  child: Image.network(
+                                                                    '${UrlHelper.imaeurl}customer/attach/${add__attacment.toString()}',
+                                                                      fit: BoxFit
+                                                                          .cover),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Row(
+                                                      children: [
+                                                        Text(
+                                                            "Customer PAN Card Number"),
                                                       ],
                                                     ),
                                                   ),
@@ -3331,8 +4088,11 @@ var isConnected=false;
                                                                       : false,
                                                               hintText: "$add__pancardd" ==
                                                                       'null'
-                                                                  ? "Enter Address"
+                                                                  ? "Enter PAN Card Number"
                                                                   : "$add__pancardd",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   const EdgeInsets.symmetric(
                                                                       vertical:
@@ -3361,10 +4121,8 @@ var isConnected=false;
                                                               focusedErrorBorder:
                                                                   OutlineInputBorder(
                                                                       borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              25),
-                                                                      borderSide:
-                                                                          const BorderSide(color: Color(0xff03467d))),
+                                                                          BorderRadius.circular(25),
+                                                                      borderSide: const BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -3390,7 +4148,12 @@ var isConnected=false;
                                                         EdgeInsets.all(8.0),
                                                     child: Row(
                                                       children: [
-                                                        Text("Pan Card Photo"),
+                                                        Text(
+                                                          "Customer PAN Card Photo",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -3407,13 +4170,18 @@ var isConnected=false;
                                                       },
                                                       decoration:
                                                           InputDecoration(
-                                                                prefixIconColor: Color(0xff03467d),
+                                                              prefixIconColor: Color(
+                                                                  0xff03467d),
                                                               prefixIcon: Icon(
                                                                   Icons.image),
-                                                              enabled: "$add__pancard" == "" || "$add__pancard" == "null"
+                                                              enabled: "$add__pancard" ==
+                                                                          "" ||
+                                                                      "$add__pancard" ==
+                                                                          "null"
                                                                   ? true
                                                                   : false,
-                                                              hintText: "$add__pancard" == "" ||
+                                                              hintText: "$add__pancard" ==
+                                                                          "" ||
                                                                       "$add__pancard" ==
                                                                           "null"
                                                                   ? add_image3 ==
@@ -3421,6 +4189,9 @@ var isConnected=false;
                                                                       ? "Choose File"
                                                                       : '${add_panCard}'
                                                                   : "$add__pancard",
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                      .black),
                                                               contentPadding:
                                                                   const EdgeInsets.symmetric(
                                                                       vertical:
@@ -3441,15 +4212,9 @@ var isConnected=false;
                                                               ),
                                                               disabledBorder: OutlineInputBorder(
                                                                   borderRadius:
-                                                                      BorderRadius.circular(
-                                                                          25),
-                                                                  borderSide: const BorderSide(
-                                                                      color: Color(
-                                                                          0xff03467d))),
-                                                              focusedErrorBorder: OutlineInputBorder(
-                                                                  borderRadius:
                                                                       BorderRadius.circular(25),
                                                                   borderSide: const BorderSide(color: Color(0xff03467d))),
+                                                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: const BorderSide(color: Color(0xff03467d))),
                                                               errorBorder: OutlineInputBorder(
                                                                 borderRadius:
                                                                     BorderRadius
@@ -3477,7 +4242,7 @@ var isConnected=false;
                                                       : Padding(
                                                           padding:
                                                               const EdgeInsets
-                                                                      .only(
+                                                                  .only(
                                                                   left: 8),
                                                           child: Row(
                                                             mainAxisAlignment:
@@ -3487,14 +4252,14 @@ var isConnected=false;
                                                               InkWell(
                                                                 onTap: () {
                                                                   download(
-                                                                      'https://dmlux.in/project/public/customer/pancard/${add__pancard.toString()}');
+                                                                     '${UrlHelper.imaeurl}customer/pancard/${add__pancard.toString()}');
                                                                 },
                                                                 child:
                                                                     Container(
                                                                   height: 40,
                                                                   width: 50,
                                                                   child: Image.network(
-                                                                      'https://dmlux.in/project/public/customer/pancard/${add__pancard.toString()}',
+                                                                    '${UrlHelper.imaeurl}customer/pancard/${add__pancard.toString()}',
                                                                       fit: BoxFit
                                                                           .cover),
                                                                 ),
@@ -3523,7 +4288,7 @@ var isConnected=false;
                                                               child: Padding(
                                                                 padding:
                                                                     const EdgeInsets
-                                                                            .all(
+                                                                        .all(
                                                                         8.0),
                                                                 child:
                                                                     Container(
@@ -3532,7 +4297,7 @@ var isConnected=false;
                                                                           borderRadius:
                                                                               BorderRadius.circular(20),
                                                                           color:
-                                                                              Colors.blue,
+                                                                              Colors.red,
                                                                         ),
                                                                         height:
                                                                             35,
@@ -3556,7 +4321,7 @@ var isConnected=false;
                                                               child: Padding(
                                                                 padding:
                                                                     const EdgeInsets
-                                                                            .all(
+                                                                        .all(
                                                                         8.0),
                                                                 child:
                                                                     Container(
@@ -3565,7 +4330,7 @@ var isConnected=false;
                                                                           borderRadius:
                                                                               BorderRadius.circular(20),
                                                                           color:
-                                                                              Colors.blue,
+                                                                              Colors.red,
                                                                         ),
                                                                         height:
                                                                             35,
@@ -3590,7 +4355,7 @@ var isConnected=false;
                                                                         .circular(
                                                                             20),
                                                                 color:
-                                                                    Colors.red,
+                                                                    Colors.blue,
                                                               ),
                                                               height: 35,
                                                               width: 80,
@@ -3622,7 +4387,8 @@ var isConnected=false;
                                                                   child:
                                                                       Padding(
                                                                     padding:
-                                                                        const EdgeInsets.all(
+                                                                        const EdgeInsets
+                                                                            .all(
                                                                             8.0),
                                                                     child:
                                                                         Column(
@@ -3631,7 +4397,7 @@ var isConnected=false;
                                                                             decoration:
                                                                                 BoxDecoration(
                                                                               borderRadius: BorderRadius.circular(20),
-                                                                              color: Colors.red,
+                                                                              color: Colors.blue,
                                                                             ),
                                                                             height:
                                                                                 35,
@@ -3657,14 +4423,15 @@ var isConnected=false;
                                                                   child:
                                                                       Padding(
                                                                     padding:
-                                                                        const EdgeInsets.all(
+                                                                        const EdgeInsets
+                                                                            .all(
                                                                             8.0),
                                                                     child: Container(
                                                                         decoration: BoxDecoration(
                                                                           borderRadius:
                                                                               BorderRadius.circular(20),
                                                                           color:
-                                                                              Colors.blue,
+                                                                              Colors.red,
                                                                         ),
                                                                         height: 35,
                                                                         width: 80,
@@ -3684,7 +4451,7 @@ var isConnected=false;
                                                                         borderRadius:
                                                                             BorderRadius.circular(20),
                                                                         color: Colors
-                                                                            .red,
+                                                                            .blue,
                                                                       ),
                                                                       height: 35,
                                                                       width: 80,
@@ -3721,7 +4488,7 @@ var isConnected=false;
                                                                         BorderRadius.circular(
                                                                             20),
                                                                     color: Colors
-                                                                        .red,
+                                                                        .blue,
                                                                   ),
                                                                   height: 35,
                                                                   width: 80,
@@ -3756,7 +4523,7 @@ var isConnected=false;
                                                                           BorderRadius.circular(
                                                                               20),
                                                                       color: Colors
-                                                                          .red,
+                                                                          .blue,
                                                                     ),
                                                                     height: 35,
                                                                     width: 80,
@@ -3785,7 +4552,7 @@ var isConnected=false;
                                                                           mainAxisAlignment:
                                                                               MainAxisAlignment.start,
                                                                           children: [
-                                                                            Column(
+                                                                            Row(
                                                                               children: [
                                                                                 InkWell(
                                                                                     onTap: () {
@@ -3796,13 +4563,20 @@ var isConnected=false;
                                                                                     },
                                                                                     child: Padding(
                                                                                       padding: const EdgeInsets.all(8.0),
-                                                                                      child: Container(height: 35, width: 80, color: Colors.blue, child: const Center(child: Text("remove", style: TextStyle(color: Colors.white)))),
+                                                                                      child: Container(
+                                                                                          decoration: BoxDecoration(
+                                                                                            borderRadius: BorderRadius.circular(20),
+                                                                                            color: Colors.red,
+                                                                                          ),
+                                                                                          height: 35,
+                                                                                          width: 80,
+                                                                                          child: const Center(child: Text("remove", style: TextStyle(color: Colors.white)))),
                                                                                     )),
                                                                                 InkWell(
                                                                                     onTap: () {
                                                                                       setState(() {});
                                                                                     },
-                                                                                    child: Container(height: 35, width: 80, color: Colors.red, child: const Center(child: Text("Add More", style: TextStyle(color: Colors.white))))),
+                                                                                    child: Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.blue), height: 35, width: 80, child: const Center(child: Text("Add More", style: TextStyle(color: Colors.white))))),
                                                                               ],
                                                                             )
                                                                           ],
@@ -3819,15 +4593,21 @@ var isConnected=false;
                                                                             mainAxisAlignment:
                                                                                 MainAxisAlignment.start,
                                                                             children: [
-                                                                              Container(
-                                                                                  height: 35,
-                                                                                  width: 80,
-                                                                                  color: Colors.red,
-                                                                                  child: const Center(
-                                                                                      child: Text(
-                                                                                    "Add More",
-                                                                                    style: TextStyle(color: Colors.white),
-                                                                                  ))),
+                                                                              Padding(
+                                                                                padding: const EdgeInsets.all(8.0),
+                                                                                child: Container(
+                                                                                    decoration: BoxDecoration(
+                                                                                      borderRadius: BorderRadius.circular(20),
+                                                                                      color: Colors.red,
+                                                                                    ),
+                                                                                    height: 35,
+                                                                                    width: 80,
+                                                                                    child: const Center(
+                                                                                        child: Text(
+                                                                                      "Add More",
+                                                                                      style: TextStyle(color: Colors.white),
+                                                                                    ))),
+                                                                              ),
                                                                             ],
                                                                           ))
                                                                 ],
@@ -3848,20 +4628,22 @@ var isConnected=false;
                                             child: TextFormField(
                                                 controller: description1,
                                                 decoration: InputDecoration(
-                                                  enabled: data!.description
+                                                  enabled: data.description
                                                               .toString() ==
                                                           'null'
                                                       ? true
                                                       : false,
-                                                  hintText: data!.description
+                                                  hintText: data.description
                                                               .toString() ==
                                                           'null'
                                                       ? "Description"
-                                                      : data!.description
+                                                      : data.description
                                                           .toString(),
+                                                  hintStyle: TextStyle(
+                                                      color: Colors.black),
                                                   contentPadding:
                                                       const EdgeInsets
-                                                              .symmetric(
+                                                          .symmetric(
                                                           vertical: 10.0,
                                                           horizontal: 10.0),
                                                   border: OutlineInputBorder(
@@ -3876,181 +4658,213 @@ var isConnected=false;
                                                 ))),
                                         InkWell(
                                           onTap: () {
-                                            var adharimage =
-                                                data.adharCard.toString() == ''
-                                                    ? image
-                                                    : data.adharCard.toString();
-                                            var checkimage = data.chequePhoto
-                                                        .toString() ==
-                                                    ''
-                                                ? image
-                                                : data.chequePhoto.toString();
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              setState(() {
+                                                isLoading == true;
+                                              });
+                                              var adharimage = data.adharCard
+                                                          .toString() ==
+                                                      ''
+                                                  ? image
+                                                  : data.adharCard.toString();
+                                              var checkimage = data.chequePhoto
+                                                          .toString() ==
+                                                      ''
+                                                  ? image
+                                                  : data.chequePhoto.toString();
 
-                                            var attacheimage = data.chequePhoto
-                                                        .toString() ==
-                                                    ''
-                                                ? image2
-                                                : data.attachment.toString();
+                                              var attacheimage = data
+                                                          .chequePhoto
+                                                          .toString() ==
+                                                      ''
+                                                  ? image2
+                                                  : data.attachment.toString();
 
-                                            var panimage = data.panCardImage
-                                                        .toString() ==
-                                                    ''
-                                                ? image3
-                                                : data.panCardImage.toString();
+                                              var panimage = data.panCardImage
+                                                          .toString() ==
+                                                      ''
+                                                  ? image3
+                                                  : data.panCardImage
+                                                      .toString();
 
-                                            var customer =
-                                                data.ownerName.toString() ==
-                                                        'null'
-                                                    ? ownerName1.text
-                                                    : data.ownerName.toString();
+                                              var customer = data.ownerName
+                                                          .toString() ==
+                                                      'null'
+                                                  ? ownerName1.text
+                                                  : data.ownerName.toString();
 
-                                            var numbber =
-                                                data.contactNo.toString() ==
-                                                        'null'
-                                                    ? contact_number.text
-                                                    : data.contactNo.toString();
+                                              var numbber = data.contactNo
+                                                          .toString() ==
+                                                      'null'
+                                                  ? contact_number.text
+                                                  : data.contactNo.toString();
 
-                                            var addresss =
-                                                data.address.toString() ==
-                                                        'null'
-                                                    ? address.text
-                                                    : data.address.toString();
+                                              var addresss =
+                                                  data.address.toString() ==
+                                                          'null'
+                                                      ? address.text
+                                                      : data.address.toString();
 
-                                            var pannumber =
-                                                data.panCard.toString() ==
-                                                        'null'
-                                                    ? pan_number.text
-                                                    : data.panCard.toString();
+                                              var adhaar_card = data
+                                                  .adhar_card_number
+                                                  .toString();
 
-                                            var desciption = data.description
-                                                        .toString() ==
-                                                    'null'
-                                                ? description1.text
-                                                : data.description.toString();
+                                              var pannumber =
+                                                  data.panCard.toString() ==
+                                                          'null'
+                                                      ? pan_number.text
+                                                      : data.panCard.toString();
 
-                                            var status = dropdownValue ==
-                                                    'SelectPropertyStatus'
-                                                ? data.status.toString()
-                                                : dropdownValue == "Hold"
-                                                    ? '3'
-                                                    : dropdownValue == "Book"
-                                                        ? '2'
-                                                        : '0';
+                                              var desciption = data.description
+                                                          .toString() ==
+                                                      'null'
+                                                  ? description1.text
+                                                  : data.description.toString();
 
-                                            var modevalue = dropdownValue1 ==
-                                                    'SelectPaymentMode'
-                                                ? data.bookingStatus.toString()
-                                                : dropdownValue1 == "RTGS/IMPS"
-                                                    ? '1'
-                                                    : dropdownValue1 ==
-                                                            "Bank Transfer"
-                                                        ? '2'
-                                                        : dropdownValue1 ==
-                                                                "Cheque"
-                                                            ? '3'
-                                                            : '0';
+                                              var status = dropdownValue ==
+                                                      'SelectPropertyStatus'
+                                                  ? data.status.toString()
+                                                  : dropdownValue == "Hold"
+                                                      ? '3'
+                                                      : dropdownValue == "Book"
+                                                          ? '2'
+                                                          : '0';
 
-                                            var co__owner1 =
-                                                co__owner == null ||
-                                                        co__owner == 'null'
-                                                    ? co_custo_name.text
-                                                    : co__owner;
-                                            var co__contact1 =
-                                                co__contact == null ||
-                                                        co__contact == 'null'
-                                                    ? co_contact.text
-                                                    : co__contact;
-                                            var co__address1 =
-                                                co__address == null ||
-                                                        co__address == 'null'
-                                                    ? co_address.text
-                                                    : co__address;
-                                            var co__pancarnumber =
-                                                co__pancardd == null ||
-                                                        co__pancardd == 'null'
-                                                    ? co_pancard.text
-                                                    : co__pancardd;
+                                              var modevalue = dropdownValue1 ==
+                                                      'SelectPaymentMode'
+                                                  ? data.bookingStatus
+                                                      .toString()
+                                                  : dropdownValue1 ==
+                                                          "RTGS/IMPS"
+                                                      ? '1'
+                                                      : dropdownValue1 ==
+                                                              "Bank Transfer"
+                                                          ? '2'
+                                                          : dropdownValue1 ==
+                                                                  "Cheque"
+                                                              ? '3'
+                                                              : '0';
 
-                                            var co__adar1 = co__adar == '' ||
-                                                    co__adar == 'null'
-                                                ? co_image
-                                                : '';
+                                              var co__adharnumber =
+                                                  co__aadharnum == null ||
+                                                          co__aadharnum ==
+                                                              "null"
+                                                      ? co_Adar.text
+                                                      : co__aadharnum;
 
-                                            var co__ceque1 = co__ceque == '' ||
-                                                    co__ceque == 'null'
-                                                ? co_image1
-                                                : co__ceque;
-                                            var co__attacment1 =
-                                                co__attacment == '' ||
-                                                        co__attacment == 'null'
-                                                    ? co_image2
-                                                    : co__attacment;
-                                            var co__pancard1 =
-                                                co__pancard == '' ||
-                                                        co__pancard == 'null'
-                                                    ? co_image3
-                                                    : co__pancard;
+                                              var co__owner1 =
+                                                  co__owner == null ||
+                                                          co__owner == 'null'
+                                                      ? co_custo_name.text
+                                                      : co__owner;
 
-                                            print('yesyes');
-                                            print(co__adar1);
-                                            print(co__ceque1);
-                                            print(co__attacment1);
-                                            print(co__pancard1);
+                                              var co__contact1 =
+                                                  co__contact == null ||
+                                                          co__contact == 'null'
+                                                      ? co_contact.text
+                                                      : co__contact;
 
-                                            var add__owner1 =
-                                                add__owner == null ||
-                                                        add__owner == 'null'
-                                                    ? add_custo_name.text
-                                                    : add__owner;
-                                            var add__contact1 =
-                                                add__contact == null ||
-                                                        add__contact == 'null'
-                                                    ? add_contact.text
-                                                    : add__contact;
-                                            var add__address1 =
-                                                add__address == null ||
-                                                        add__address == 'null'
-                                                    ? add_address.text
-                                                    : add__address;
-                                            var add__pancarnumber =
-                                                add__pancardd == null ||
-                                                        add__pancardd == 'null'
-                                                    ? add_pannumber.text
-                                                    : add__pancardd;
+                                              var co__address1 =
+                                                  co__address == null ||
+                                                          co__address == 'null'
+                                                      ? co_address.text
+                                                      : co__address;
+                                              var co__pancarnumber =
+                                                  co__pancardd == null ||
+                                                          co__pancardd == 'null'
+                                                      ? co_pancard.text
+                                                      : co__pancardd;
 
-                                            var add__adar1 = add__adar == '' ||
-                                                    add__adar == 'null'
-                                                ? add_image
-                                                : add__adar;
+                                              var co__adar1 = co__adar == '' ||
+                                                      co__adar == 'null'
+                                                  ? co_image
+                                                  : '';
 
-                                            upload2(
-                                              context,
-                                              adharimage,
-                                              checkimage,
-                                              attacheimage,
-                                              panimage,
-                                              widget.id,
-                                              modevalue,
-                                              status,
-                                              customer,
-                                              numbber,
-                                              addresss,
-                                              pannumber,
-                                              desciption,
-                                              co__owner1,
-                                              co__contact1,
-                                              co__address1,
-                                              co__pancarnumber,
-                                              co__adar1,
-                                              co__ceque1,
-                                              co__attacment1,
-                                              co__pancard1,
-                                              add__owner1,
-                                              add__contact1,
-                                              add__address1,
-                                              add__pancarnumber,
-                                              add__adar1,
-                                            );
+                                              var co__ceque1 =
+                                                  co__ceque == '' ||
+                                                          co__ceque == 'null'
+                                                      ? co_image1
+                                                      : co__ceque;
+                                              var co__attacment1 =
+                                                  co__attacment == '' ||
+                                                          co__attacment ==
+                                                              'null'
+                                                      ? co_image2
+                                                      : co__attacment;
+                                              var co__pancard1 =
+                                                  co__pancard == '' ||
+                                                          co__pancard == 'null'
+                                                      ? co_image3
+                                                      : co__pancard;
+
+                                              var addadhar_number =
+                                                  add__Adharnum == null ||
+                                                          add__Adharnum ==
+                                                              "null"
+                                                      ? add_Adar.text
+                                                      : add__Adharnum;
+
+                                              var add__owner1 =
+                                                  add__owner == null ||
+                                                          add__owner == 'null'
+                                                      ? add_custo_name.text
+                                                      : add__owner;
+                                              var add__contact1 =
+                                                  add__contact == null ||
+                                                          add__contact == 'null'
+                                                      ? add_contact.text
+                                                      : add__contact;
+                                              var add__address1 =
+                                                  add__address == null ||
+                                                          add__address == 'null'
+                                                      ? add_address.text
+                                                      : add__address;
+                                              var add__pancarnumber =
+                                                  add__pancardd == null ||
+                                                          add__pancardd ==
+                                                              'null'
+                                                      ? add_pannumber.text
+                                                      : add__pancardd;
+
+                                              var add__adar1 =
+                                                  add__adar == '' ||
+                                                          add__adar == 'null'
+                                                      ? add_image
+                                                      : add__adar;
+
+                                              upload2(
+                                                context,
+                                                adharimage,
+                                                checkimage,
+                                                attacheimage,
+                                                panimage,
+                                                widget.id,
+                                                modevalue,
+                                                status,
+                                                customer,
+                                                numbber,
+                                                addresss,
+                                                adhaar_card,
+                                                pannumber,
+                                                desciption,
+                                                co__adharnumber,
+                                                co__owner1,
+                                                co__contact1,
+                                                co__address1,
+                                                co__pancarnumber,
+                                                co__adar1,
+                                                co__ceque1,
+                                                co__attacment1,
+                                                co__pancard1,
+                                                addadhar_number,
+                                                add__owner1,
+                                                add__contact1,
+                                                add__address1,
+                                                add__pancarnumber,
+                                                add__adar1,
+                                              );
+                                            }
                                           },
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
@@ -4084,7 +4898,12 @@ var isConnected=false;
                       // }
                     }
                   }
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(
+                    child: SpinKitCircle(
+                      color: Color(0xff03467d),
+                      size: 50,
+                    ),
+                  );
                 }));
   }
 
@@ -4883,8 +5702,10 @@ var isConnected=false;
       customer,
       number1,
       addresss,
+      adhaar_card,
       pannumber,
       desciption,
+      co__adharnumber,
       co__owner1,
       co__contact1,
       co__address1,
@@ -4893,6 +5714,7 @@ var isConnected=false;
       co__ceque1,
       co__attacment1,
       co__pancard1,
+      addadhar_number,
       add__owner1,
       add__contact1,
       add__address1,
@@ -4901,7 +5723,6 @@ var isConnected=false;
     setState(() {
       isLoading = true;
     });
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var isname = prefs.getString('isname');
     var number = prefs.getString('is number');
@@ -4912,13 +5733,10 @@ var isConnected=false;
       HttpHeaders.authorizationHeader: 'Bearer $isToken',
     };
 
-    var uri = Uri.parse('https://dmlux.in/project/public/api/property/booking');
+    // var uri = Uri.parse('https://dmlux.in/project/public/api/property/booking');
+      var uri = Uri.parse(UrlHelper.schemform);
     var request = http.MultipartRequest('POST', uri);
 
-    print('soesoeb');
-    print(leangth);
-    print(add__id);
-    print(co__id);
     if (image != null) {
       var stream = http.ByteStream(image!.openRead());
       var length = await image!.length();
@@ -4932,7 +5750,6 @@ var isConnected=false;
 
       request.files.add(multipartFile);
     }
-    print("wwwwww");
 
     if (image1 != null) {
       String fileName2 = Path.basename(image1!.path);
@@ -4977,7 +5794,6 @@ var isConnected=false;
 
       request.files.add(multipartFile);
     }
-    print("wwwwww");
 
     if (co_image1 != null) {
       String fileName2 = Path.basename(co_image1!.path);
@@ -5022,7 +5838,6 @@ var isConnected=false;
 
       request.files.add(multipartFile);
     }
-    print("wwwwww");
 
     if (add_image1 != null) {
       String fileName2 = Path.basename(add_image1!.path);
@@ -5068,6 +5883,7 @@ var isConnected=false;
 
     request.fields['payment_mode'] = modevalue;
     request.fields['pan_card_no'] = pannumber;
+    request.fields['adhar_card_number'] = adhaar_card;
 
     request.fields['description'] = desciption;
 
@@ -5105,43 +5921,37 @@ var isConnected=false;
         ? request.fields['pan_card_nolist[1]'] = add__pancarnumber
         : null;
 
+    index == 1 || leangth == 1 || leangth == 2
+        ? request.fields['adhar_card_number_list[0]'] =
+            // "123456789098"
+            co__adharnumber
+        : null;
+    int_index == 2 || leangth == 2
+        ? request.fields['adhar_card_number_list[1]'] =
+            //  "123456789098"
+            addadhar_number
+        : null;
     request.headers.addAll(headers);
     var response = await request.send();
 
     if (response.statusCode == 200) {
-      setState(() {
-        isLoading = false;
-      });
-
       var responseString = await response.stream.bytesToString();
       final decodedMap = json.decode(responseString);
-      print("ppppppmmmm");
-      print(decodedMap['status']);
-      decodedMap['status'] == true
-          ? ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Property details update successfully"),
-              backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-            ))
-          : ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Plot already booked/Hold"),
-              backgroundColor: Color.fromRGBO(1, 48, 74, 1),
-            ));
 
-      decodedMap['status'] == true
-          ? Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => SchemesSchreem()),
-              (Route<dynamic> route) => route.isFirst)
-          : Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => SchemesSchreem()),
-              (Route<dynamic> route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(decodedMap['msg']),
+        backgroundColor: Color(0xff03467d),
+      ));
+
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => SchemesSchreem()),
+          (Route<dynamic> route) => route.isFirst);
     } else if (response.statusCode == 500) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Not compleete"),
-        backgroundColor: Color.fromRGBO(1, 48, 74, 1),
+        backgroundColor: Color(0xff03467d),
       ));
       Navigator.pushAndRemoveUntil(
           context,
@@ -5151,11 +5961,14 @@ var isConnected=false;
     } else {
       var responseString = await response.stream.bytesToString();
       final decodedMap = json.decode(responseString);
-      print(decodedMap['message']);
 
       if (decodedMap['message'] == "Unauthenticated.") {
-        ApiServices.getLogOut(context).then((value) {});
-        prefs.clear();
+        ApiServices.getLogOut(context).then((value) {
+          if (value.status == true) {
+            prefs.clear();
+          }
+        });
+
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => LoginScreen())));
       }
@@ -5163,15 +5976,17 @@ var isConnected=false;
   }
 
   void book() async {
-    print("ddddd");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     ApiServices.bookHoldEdit(context, widget.id).then((value) {
       setState(() {});
-      print("object");
-      print(value.message.toString());
+
       if (value.message.toString() == "Unauthenticated.") {
-        ApiServices.getLogOut(context).then((value) {});
-        prefs.clear();
+        ApiServices.getLogOut(context).then((value) {
+          if (value.status == true) {
+            prefs.clear();
+          }
+        });
+
         Navigator.push(
             context, MaterialPageRoute(builder: ((context) => LoginScreen())));
       }
